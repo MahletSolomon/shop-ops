@@ -23,7 +23,7 @@ func (m *MockBusinessRepository) Save(business *domain.Business) error {
 	return args.Error(0)
 }
 
-func (m *MockBusinessRepository) FindById(id string) (*domain.Business, error) {
+func (m *MockBusinessRepository) FindByID(id string) (*domain.Business, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -108,7 +108,7 @@ func TestGetBusinessById(t *testing.T) {
 	business := &domain.Business{Name: "Test Shop"}
 
 	t.Run("Success", func(t *testing.T) {
-		mockRepo.On("FindById", businessID).Return(business, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(business, nil).Once()
 
 		result, err := uc.GetById(businessID)
 
@@ -118,7 +118,7 @@ func TestGetBusinessById(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		mockRepo.On("FindById", businessID).Return(nil, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(nil, nil).Once()
 
 		result, err := uc.GetById(businessID)
 
@@ -149,7 +149,7 @@ func TestUpdateBusiness(t *testing.T) {
 			UpdatedAt: time.Time{},
 		}
 
-		mockRepo.On("FindById", businessID).Return(business, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(business, nil).Once()
 		mockRepo.On("FindByNameAndUserId", req.Name, userID.Hex()).Return(nil, nil).Once()
 		mockRepo.On("Update", mock.MatchedBy(func(b *domain.Business) bool {
 			return b.Name == req.Name && !b.UpdatedAt.IsZero()
@@ -173,7 +173,7 @@ func TestUpdateBusiness(t *testing.T) {
 			ID:   primitive.NewObjectID(),
 			Name: req.Name,
 		}
-		mockRepo.On("FindById", businessID).Return(business, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(business, nil).Once()
 		mockRepo.On("FindByNameAndUserId", req.Name, userID.Hex()).Return(existing, nil).Once()
 
 		updatedBusiness, err := uc.Update(businessID, userID.Hex(), req)
@@ -185,7 +185,7 @@ func TestUpdateBusiness(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		mockRepo.On("FindById", businessID).Return(nil, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(nil, nil).Once()
 
 		updatedBusiness, err := uc.Update(businessID, userID.Hex(), req)
 
@@ -202,7 +202,7 @@ func TestUpdateBusiness(t *testing.T) {
 			Name:   "Old Name",
 		}
 
-		mockRepo.On("FindById", businessID).Return(business, nil).Once()
+		mockRepo.On("FindByID", businessID).Return(business, nil).Once()
 
 		updatedBusiness, err := uc.Update(businessID, otherUserID.Hex(), req)
 

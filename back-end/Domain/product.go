@@ -18,6 +18,11 @@ type Product struct {
 	UpdatedAt           time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
+// IsLowStock checks if the product stock is at or below the low stock threshold
+func (p *Product) IsLowStock() bool {
+	return p.StockQuantity <= p.LowStockThreshold
+}
+
 // StockMovement represents history of stock changes
 type StockMovement struct {
 	ID          primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
@@ -34,12 +39,12 @@ type StockMovement struct {
 type MovementType string
 
 const (
-	MovementTypePurchase MovementType = "purchase"  // Stock increase from purchase
-	MovementTypeSale     MovementType = "sale"      // Stock decrease from sale
-	MovementTypeAdjust   MovementType = "adjust"    // Manual adjustment
-	MovementTypeDamage   MovementType = "damage"    // Stock decrease from damage
-	MovementTypeTheft    MovementType = "theft"     // Stock decrease from theft
-	MovementTypeReturn   MovementType = "return"    // Stock increase from customer return
+	MovementTypePurchase MovementType = "purchase" // Stock increase from purchase
+	MovementTypeSale     MovementType = "sale"     // Stock decrease from sale
+	MovementTypeAdjust   MovementType = "adjust"   // Manual adjustment
+	MovementTypeDamage   MovementType = "damage"   // Stock decrease from damage
+	MovementTypeTheft    MovementType = "theft"    // Stock decrease from theft
+	MovementTypeReturn   MovementType = "return"   // Stock increase from customer return
 )
 
 // StockMovementResponse for API responses
@@ -51,11 +56,12 @@ type StockMovementResponse struct {
 	ReferenceID *string      `json:"reference_id,omitempty"` // Only present if linked to a transaction
 	CreatedBy   string       `json:"created_by"`
 	CreatedAt   time.Time    `json:"created_at"`
-	
+
 	// Optional: Include product info for list views
 	ProductID   string `json:"product_id,omitempty"`
 	ProductName string `json:"product_name,omitempty"`
 }
+
 // Request/Response structs
 type CreateProductRequest struct {
 	Name                string  `json:"name" validate:"required"`
@@ -88,25 +94,25 @@ type ProductResponse struct {
 }
 
 type ProductListResponse struct {
-	Products   []ProductResponse    `json:"products"`
-	Pagination PaginationMetadata   `json:"pagination"`
+	Products   []ProductResponse  `json:"products"`
+	Pagination PaginationMetadata `json:"pagination"`
 }
 
 type PaginationMetadata struct {
-	Page      int `json:"page"`
-	Limit     int `json:"limit"`
-	Total     int `json:"total"`
+	Page       int `json:"page"`
+	Limit      int `json:"limit"`
+	Total      int `json:"total"`
 	TotalPages int `json:"total_pages"`
 }
 
 // Query parameters for list products
 type ProductListQuery struct {
-	Search        string `form:"search"`
-	LowStockOnly  bool   `form:"low_stock_only"`
-	Page          int    `form:"page,default=1"`
-	Limit         int    `form:"limit,default=50"`
-	Sort          string `form:"sort,default=name"`
-	Order         string `form:"order,default=asc"`
+	Search       string `form:"search"`
+	LowStockOnly bool   `form:"low_stock_only"`
+	Page         int    `form:"page,default=1"`
+	Limit        int    `form:"limit,default=50"`
+	Sort         string `form:"sort,default=name"`
+	Order        string `form:"order,default=asc"`
 }
 
 // Repository interface
@@ -116,7 +122,7 @@ type ProductRepository interface {
 	FindByBusinessID(businessID string, query ProductListQuery) ([]Product, int64, error)
 	Update(product *Product) error
 	Delete(id string) error
-	AdjustStock(productID string, quantity int, movementType MovementType, reason string, referenceID *string, userID string) error 
+	AdjustStock(productID string, quantity int, movementType MovementType, reason string, referenceID *string, userID string) error
 	GetLowStock(businessID string) ([]Product, error)
 	GetStockHistory(productID string, limit int) ([]StockMovement, error)
 }

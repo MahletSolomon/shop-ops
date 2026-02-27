@@ -172,7 +172,13 @@ func (u *userUseCases) UpdateProfile(userId string, req *UpdateProfileRequest) (
 		user.Name = req.Name
 	}
 	if req.Email != "" {
-		// Could check uniqueness here if email changes
+		// Check uniqueness if email changes
+		if user.Email != req.Email {
+			existingUser, _ := u.userRepo.FindByEmail(req.Email)
+			if existingUser != nil {
+				return nil, errors.New("user with this email already exists")
+			}
+		}
 		user.Email = req.Email
 	}
 	user.UpdatedAt = time.Now()

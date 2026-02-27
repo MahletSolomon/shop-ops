@@ -223,25 +223,19 @@ func TestGetProfile(t *testing.T) {
 }
 
 func TestUpdateProfile(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockPwd := new(MockPasswordService)
-	mockJWT := new(MockJWTService)
-	uc := usecases.NewUserUseCases(mockRepo, mockPwd, mockJWT)
-
 	userID := primitive.NewObjectID()
-	user := &domain.User{
-		ID:    userID,
-		Name:  "Old Name",
-		Email: "old@example.com",
-	}
-
 	req := &usecases.UpdateProfileRequest{
 		Name:  "New Name",
 		Email: "new@example.com",
 	}
 
 	t.Run("Success", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		uc := usecases.NewUserUseCases(mockRepo, new(MockPasswordService), new(MockJWTService))
+		user := &domain.User{ID: userID, Name: "Old Name", Email: "old@example.com"}
+
 		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockRepo.On("FindByEmail", req.Email).Return(nil, nil).Once()
 		mockRepo.On("Update", mock.MatchedBy(func(u *domain.User) bool {
 			return u.Name == req.Name && u.Email == req.Email && !u.UpdatedAt.IsZero()
 		})).Return(nil).Once()
@@ -254,7 +248,28 @@ func TestUpdateProfile(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 
+	t.Run("Duplicate Email", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		uc := usecases.NewUserUseCases(mockRepo, new(MockPasswordService), new(MockJWTService))
+		user := &domain.User{ID: userID, Name: "Old Name", Email: "old@example.com"}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+
+		existingUser := &domain.User{Email: req.Email}
+		mockRepo.On("FindByEmail", req.Email).Return(existingUser, nil).Once()
+
+		updatedUser, err := uc.UpdateProfile(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Nil(t, updatedUser)
+		assert.Equal(t, "user with this email already exists", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
 	t.Run("User Not Found", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		uc := usecases.NewUserUseCases(mockRepo, new(MockPasswordService), new(MockJWTService))
+
 		mockRepo.On("FindById", userID.Hex()).Return(nil, nil).Once()
 
 		updatedUser, err := uc.UpdateProfile(userID.Hex(), req)

@@ -68,11 +68,11 @@ func (b *businessUseCases) GetByUserId(userId string) ([]*domain.Business, error
 }
 
 func (b *businessUseCases) GetById(businessId string) (*domain.Business, error) {
-	return b.businessRepo.FindById(businessId)
+	return b.businessRepo.FindByID(businessId)
 }
 
 func (b *businessUseCases) Update(businessId string, userId string, req *UpdateBusinessRequest) (*domain.Business, error) {
-	business, err := b.businessRepo.FindById(businessId)
+	business, err := b.businessRepo.FindByID(businessId)
 	if err != nil {
 		return nil, err
 	}

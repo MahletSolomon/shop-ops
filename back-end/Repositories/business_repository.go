@@ -13,7 +13,7 @@ import (
 
 type BusinessRepository interface {
 	Save(business *domain.Business) error
-	FindById(id string) (*domain.Business, error)
+	FindByID(id string) (*domain.Business, error)
 	FindByUserId(userId string) ([]*domain.Business, error)
 	Update(business *domain.Business) error
 	FindByNameAndUserId(name string, userId string) (*domain.Business, error)
@@ -37,7 +37,7 @@ func (r *businessRepository) Save(business *domain.Business) error {
 	return err
 }
 
-func (r *businessRepository) FindById(id string) (*domain.Business, error) {
+func (r *businessRepository) FindByID(id string) (*domain.Business, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

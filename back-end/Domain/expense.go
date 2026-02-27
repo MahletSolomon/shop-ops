@@ -22,7 +22,42 @@ const (
 	ExpenseOther         ExpenseCategory = "OTHER"
 )
 
-// Expense represents a business expense
+// Domain errors  expense module
+var (
+	ErrExpenseNotFound		= errors.New("expense not found")
+	ErrUnauthorized 		= errors.New("unauthorized access to expense")
+	ErrInvalidCategory 		= errors.New("invalid expense category")
+	ErrMissingBusinessID	= errors.New("business ID is required")
+	ErrNegativeAmount 		= errors.New("amount cannot be negative")
+	ErrCannotUpdateSynced 	= errors.New("cannot update synced expense")
+	ErrCannotUpdateVoided 	= errors.New("cannot update voided expense")
+)
+
+// GetAllExpenseCategories  expense categories
+func GetAllExpenseCategories() []ExpenseCategory {
+	return []ExpenseCategory{
+		ExpenseRent,
+		ExpenseUtilities,
+		ExpenseSalary,
+		ExpenseStockPurchase,
+		ExpenseTransport,
+		ExpenseTransport,
+		ExpenseMarketing,
+		ExpenseMaintenance,
+		ExpenseOther,
+	}
+}
+
+func IsValidExpenseCategory(category string) bool {
+	for _, c := range GetAllExpenseCategories() {
+		if string(c) == category {
+			return true
+		}
+	}
+	return false
+}
+
+// Expense represents  expense
 type Expense struct {
 	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	BusinessID primitive.ObjectID `bson:"business_id" json:"business_id"`
@@ -36,8 +71,6 @@ type Expense struct {
 // NewExpense creates a new Expense instance
 func NewExpense(businessID primitive.ObjectID, category ExpenseCategory, amount decimal.Decimal, note string) *Expense {
 	now := time.Now()
-	// Default to OTHER if invalid/empty? Or enforce validation?
-	// For now, let's allow caller to set it, validation will catch it if needed.
 	return &Expense{
 		ID:         primitive.NewObjectID(),
 		BusinessID: businessID,
@@ -61,4 +94,10 @@ func (e *Expense) Validate() error {
 		return errors.New("expense category is required")
 	}
 	return nil
+}
+
+
+// Void marks the expense as voided
+func (e *Expense) Void() {
+	e.IsVoided = true
 }

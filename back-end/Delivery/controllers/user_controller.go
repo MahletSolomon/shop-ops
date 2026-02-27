@@ -56,6 +56,8 @@ func (c *UserController) UpdateProfile(ctx *gin.Context) {
 		status := http.StatusInternalServerError
 		if err.Error() == "user not found" {
 			status = http.StatusNotFound
+		} else if err.Error() == "user with this email already exists" {
+			status = http.StatusConflict
 		}
 		ctx.JSON(status, gin.H{"error": err.Error()})
 		return

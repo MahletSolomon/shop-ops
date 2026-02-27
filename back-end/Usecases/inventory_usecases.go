@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	Domain "shop-ops/Domain"
+
 	"github.com/shopspring/decimal"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -234,21 +235,21 @@ func (uc *inventoryUseCase) GetStockHistory(productID, businessID string, limit 
 	responses := make([]Domain.StockMovementResponse, len(movements))
 	for i, movement := range movements {
 		response := Domain.StockMovementResponse{
-			ID:        movement.ID.Hex(),
-			Type:      movement.Type,
-			Quantity:  movement.Quantity,
-			Reason:    movement.Reason,
-			CreatedBy: movement.CreatedBy.Hex(),
-			CreatedAt: movement.CreatedAt,
-			ProductID: productID,
+			ID:          movement.ID.Hex(),
+			Type:        movement.Type,
+			Quantity:    movement.Quantity,
+			Reason:      movement.Reason,
+			CreatedBy:   movement.CreatedBy.Hex(),
+			CreatedAt:   movement.CreatedAt,
+			ProductID:   productID,
 			ProductName: product.Name,
 		}
-		
+
 		if movement.ReferenceID != nil {
 			refID := movement.ReferenceID.Hex()
 			response.ReferenceID = &refID
 		}
-		
+
 		responses[i] = response
 	}
 
@@ -262,7 +263,7 @@ func (uc *inventoryUseCase) toProductResponse(product *Domain.Product) *Domain.P
 		DefaultSellingPrice: product.DefaultSellingPrice,
 		StockQuantity:       product.StockQuantity,
 		LowStockThreshold:   product.LowStockThreshold,
-		IsLowStock:          product.StockQuantity <= product.LowStockThreshold,
+		IsLowStock:          product.IsLowStock(),
 		CreatedAt:           product.CreatedAt,
 		UpdatedAt:           product.UpdatedAt,
 	}
