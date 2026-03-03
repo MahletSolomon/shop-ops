@@ -6,15 +6,32 @@ import (
 
 	Domain "shop-ops/Domain"
 	Usecases "shop-ops/Usecases"
+
 	"github.com/gin-gonic/gin"
 )
 
 type InventoryController struct {
 	inventoryUC Usecases.InventoryUseCase
+	businessUC  Usecases.BusinessUseCases
 }
 
-func NewInventoryController(inventoryUC Usecases.InventoryUseCase) *InventoryController {
-	return &InventoryController{inventoryUC: inventoryUC}
+func NewInventoryController(inventoryUC Usecases.InventoryUseCase, businessUC Usecases.BusinessUseCases) *InventoryController {
+	return &InventoryController{inventoryUC: inventoryUC, businessUC: businessUC}
+}
+
+// verifyBusinessOwnership checks that the authenticated user owns the business.
+// Returns true if access is denied (caller should return early).
+func (c *InventoryController) verifyBusinessOwnership(ctx *gin.Context, businessID, userID string) bool {
+	business, err := c.businessUC.GetById(businessID)
+	if err != nil || business == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Business not found"})
+		return true
+	}
+	if business.UserID.Hex() != userID {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to access this business"})
+		return true
+	}
+	return false
 }
 
 // CreateProduct godoc
@@ -28,7 +45,7 @@ func NewInventoryController(inventoryUC Usecases.InventoryUseCase) *InventoryCon
 // @Success      201  {object}  Domain.ProductResponse
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products [post]
+// @Router       /api/businesses/{businessId}/inventory/products [post]
 // @Security     BearerAuth
 func (c *InventoryController) CreateProduct(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -37,9 +54,13 @@ func (c *InventoryController) CreateProduct(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := ctx.Get("userID")
+	userID, exists := ctx.Get("user_id")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	if c.verifyBusinessOwnership(ctx, businessID, userID.(string)) {
 		return
 	}
 
@@ -73,7 +94,7 @@ func (c *InventoryController) CreateProduct(ctx *gin.Context) {
 // @Success      200  {object}  Domain.ProductListResponse
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products [get]
+// @Router       /api/businesses/{businessId}/inventory/products [get]
 // @Security     BearerAuth
 func (c *InventoryController) GetProducts(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -108,7 +129,7 @@ func (c *InventoryController) GetProducts(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
 // @Failure      404  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/{productId} [get]
+// @Router       /api/businesses/{businessId}/inventory/products/{productId} [get]
 // @Security     BearerAuth
 func (c *InventoryController) GetProduct(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -145,7 +166,7 @@ func (c *InventoryController) GetProduct(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
 // @Failure      404  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/{productId} [patch]
+// @Router       /api/businesses/{businessId}/inventory/products/{productId} [patch]
 // @Security     BearerAuth
 func (c *InventoryController) UpdateProduct(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -160,9 +181,13 @@ func (c *InventoryController) UpdateProduct(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := ctx.Get("userID")
+	userID, exists := ctx.Get("user_id")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	if c.verifyBusinessOwnership(ctx, businessID, userID.(string)) {
 		return
 	}
 
@@ -192,7 +217,7 @@ func (c *InventoryController) UpdateProduct(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
 // @Failure      404  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/{productId} [delete]
+// @Router       /api/businesses/{businessId}/inventory/products/{productId} [delete]
 // @Security     BearerAuth
 func (c *InventoryController) DeleteProduct(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -207,9 +232,13 @@ func (c *InventoryController) DeleteProduct(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := ctx.Get("userID")
+	userID, exists := ctx.Get("user_id")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	if c.verifyBusinessOwnership(ctx, businessID, userID.(string)) {
 		return
 	}
 
@@ -234,7 +263,7 @@ func (c *InventoryController) DeleteProduct(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
 // @Failure      404  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/{productId}/adjust [post]
+// @Router       /api/businesses/{businessId}/inventory/products/{productId}/adjust [post]
 // @Security     BearerAuth
 func (c *InventoryController) AdjustStock(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -249,9 +278,13 @@ func (c *InventoryController) AdjustStock(ctx *gin.Context) {
 		return
 	}
 
-	userID, exists := ctx.Get("userID")
+	userID, exists := ctx.Get("user_id")
 	if !exists {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	if c.verifyBusinessOwnership(ctx, businessID, userID.(string)) {
 		return
 	}
 
@@ -278,7 +311,7 @@ func (c *InventoryController) AdjustStock(ctx *gin.Context) {
 // @Success      200  {array}   Domain.ProductResponse
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/low-stock [get]
+// @Router       /api/businesses/{businessId}/inventory/products/low-stock [get]
 // @Security     BearerAuth
 func (c *InventoryController) GetLowStock(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")
@@ -308,7 +341,7 @@ func (c *InventoryController) GetLowStock(ctx *gin.Context) {
 // @Failure      400  {object}  map[string]interface{}
 // @Failure      401  {object}  map[string]interface{}
 // @Failure      404  {object}  map[string]interface{}
-// @Router       /api/v1/businesses/{businessId}/inventory/products/{productId}/history [get]
+// @Router       /api/businesses/{businessId}/inventory/products/{productId}/history [get]
 // @Security     BearerAuth
 func (c *InventoryController) GetStockHistory(ctx *gin.Context) {
 	businessID := ctx.Param("businessId")

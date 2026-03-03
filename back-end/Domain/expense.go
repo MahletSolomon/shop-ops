@@ -24,13 +24,13 @@ const (
 
 // Domain errors  expense module
 var (
-	ErrExpenseNotFound		= errors.New("expense not found")
-	ErrUnauthorized 		= errors.New("unauthorized access to expense")
-	ErrInvalidCategory 		= errors.New("invalid expense category")
-	ErrMissingBusinessID	= errors.New("business ID is required")
-	ErrNegativeAmount 		= errors.New("amount cannot be negative")
-	ErrCannotUpdateSynced 	= errors.New("cannot update synced expense")
-	ErrCannotUpdateVoided 	= errors.New("cannot update voided expense")
+	ErrExpenseNotFound    = errors.New("expense not found")
+	ErrUnauthorized       = errors.New("unauthorized access to expense")
+	ErrInvalidCategory    = errors.New("invalid expense category")
+	ErrMissingBusinessID  = errors.New("business ID is required")
+	ErrNegativeAmount     = errors.New("amount cannot be negative")
+	ErrCannotUpdateSynced = errors.New("cannot update synced expense")
+	ErrCannotUpdateVoided = errors.New("cannot update voided expense")
 )
 
 // GetAllExpenseCategories  expense categories
@@ -40,7 +40,6 @@ func GetAllExpenseCategories() []ExpenseCategory {
 		ExpenseUtilities,
 		ExpenseSalary,
 		ExpenseStockPurchase,
-		ExpenseTransport,
 		ExpenseTransport,
 		ExpenseMarketing,
 		ExpenseMaintenance,
@@ -95,7 +94,6 @@ func (e *Expense) Validate() error {
 	}
 	return nil
 }
-
 
 // Void marks the expense as voided
 func (e *Expense) Void() {

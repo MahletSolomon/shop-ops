@@ -33,12 +33,12 @@ type UpdateExpenseRequest struct {
 
 type ExpenseResponse struct {
 	ID         string          `json:"id"`
-	BusinessID string          `json:"businessId"`
+	BusinessID string          `json:"business_id"`
 	Category   string          `json:"category"`
 	Amount     decimal.Decimal `json:"amount"`
 	Note       string          `json:"note"`
-	CreatedAt  time.Time       `json:"createdAt"`
-	IsVoided   bool            `json:"isVoided"`
+	CreatedAt  time.Time       `json:"created_at"`
+	IsVoided   bool            `json:"is_voided"`
 }
 
 type SummaryResponse struct {

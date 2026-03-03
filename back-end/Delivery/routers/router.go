@@ -15,26 +15,25 @@ func SetupRouter(
 	jwtService *infrastructure.JWTService,
 	expenseController *controllers.ExpenseController,
 	inventoryController *controllers.InventoryController,
+	salesController *controllers.SalesController,
 ) *gin.Engine {
 	r := gin.Default()
 
 	// Health check (public, sans version)
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		c.JSON(200, gin.H{"message": "pong"})
 	})
 
-	// API v1 Group
-	v1 := r.Group("/api/v1")
+	// API Group
+	api := r.Group("/")
 	{
-		// Health check for v1
-		v1.GET("/health", func(c *gin.Context) {
+		// Health check
+		api.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{"status": "ok"})
 		})
 
 		// Auth Routes (Public)
-		authGroup := v1.Group("/auth")
+		authGroup := api.Group("/auth")
 		{
 			authGroup.POST("/register", authController.Register)
 			authGroup.POST("/login", authController.Login)
@@ -42,7 +41,7 @@ func SetupRouter(
 		}
 
 		// Protected Routes
-		protected := v1.Group("/")
+		protected := api.Group("/")
 		protected.Use(infrastructure.AuthMiddleware(jwtService))
 		{
 			// User Routes
@@ -71,6 +70,18 @@ func SetupRouter(
 					inventoryGroup.DELETE("/:productId", inventoryController.DeleteProduct)
 					inventoryGroup.POST("/:productId/adjust", inventoryController.AdjustStock)
 					inventoryGroup.GET("/:productId/history", inventoryController.GetStockHistory)
+				}
+
+				// Sales Routes (nested under business)
+				salesGroup := businessGroup.Group("/:businessId/sales")
+				{
+					salesGroup.POST("", salesController.CreateSale)
+					salesGroup.GET("", salesController.GetSales)
+					salesGroup.GET("/summary", salesController.GetSalesSummary)
+					salesGroup.GET("/stats", salesController.GetSalesStats)
+					salesGroup.GET("/:saleId", salesController.GetSale)
+					salesGroup.PATCH("/:saleId", salesController.UpdateSale)
+					salesGroup.DELETE("/:saleId", salesController.VoidSale)
 				}
 			}
 

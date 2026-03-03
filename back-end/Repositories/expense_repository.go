@@ -28,11 +28,7 @@ type ExpenseFilter struct {
 	Order         string
 }
 
-func (e ExpenseFilter) SetCategory(category domain.ExpenseCategory) {
-	panic("unimplemented")
-}
-
-//ExpenseRepository 
+//ExpenseRepository
 
 type ExpenseRepository interface {
 	Create(ctx context.Context, expense *domain.Expense) error
@@ -43,12 +39,12 @@ type ExpenseRepository interface {
 	GetSummaryByCategory(ctx context.Context, businessID primitive.ObjectID, startDate, endDate *time.Time) (map[domain.ExpenseCategory]decimal.Decimal, decimal.Decimal, error)
 }
 
-// MongoExpenseRepository 
+// MongoExpenseRepository
 type MongoExpenseRepository struct {
 	collection *mongo.Collection
 }
 
-// NewExpenseRepository 
+// NewExpenseRepository
 func NewExpenseRepository(db *mongo.Database) ExpenseRepository {
 	return &MongoExpenseRepository{
 		collection: db.Collection("expenses"),
@@ -202,68 +198,68 @@ func (r *MongoExpenseRepository) Void(ctx context.Context, id primitive.ObjectID
 
 // GetSummaryByCategory aggregates expenses by category
 func (r *MongoExpenseRepository) GetSummaryByCategory(ctx context.Context, businessID primitive.ObjectID, startDate, endDate *time.Time) (map[domain.ExpenseCategory]decimal.Decimal, decimal.Decimal, error) {
-    // Aggregation pipeline
-    pipeline := bson.A{
-        bson.M{
-            "$match": bson.M{
-                "business_id": businessID,
-                "is_voided":   false,
-            },
-        },
-    }
+	// Aggregation pipeline
+	pipeline := bson.A{
+		bson.M{
+			"$match": bson.M{
+				"business_id": businessID,
+				"is_voided":   false,
+			},
+		},
+	}
 
-    // Add date filter if provided 
-    if startDate != nil || endDate != nil {
-        dateMatch := bson.M{}
-        if startDate != nil {
-            dateMatch["$gte"] = *startDate  
-        }
-        if endDate != nil {
-           
-            endOfDay := endDate.Add(24*time.Hour - time.Second)
-            dateMatch["$lte"] = endOfDay    
-        }
-        pipeline = append(pipeline, bson.M{
-            "$match": bson.M{"created_at": dateMatch},
-        })
-    }
+	// Add date filter if provided
+	if startDate != nil || endDate != nil {
+		dateMatch := bson.M{}
+		if startDate != nil {
+			dateMatch["$gte"] = *startDate
+		}
+		if endDate != nil {
 
-    // Group by category
-    pipeline = append(pipeline, bson.M{
-        "$group": bson.M{
-            "_id":   "$category",
-            "total": bson.M{"$sum": bson.M{"$toDecimal": "$amount"}},
-        },
-    })
+			endOfDay := endDate.Add(24*time.Hour - time.Second)
+			dateMatch["$lte"] = endOfDay
+		}
+		pipeline = append(pipeline, bson.M{
+			"$match": bson.M{"created_at": dateMatch},
+		})
+	}
 
-    cursor, err := r.collection.Aggregate(ctx, pipeline)
-    if err != nil {
-        return nil, decimal.Zero, err
-    }
-    defer cursor.Close(ctx)
+	// Group by category
+	pipeline = append(pipeline, bson.M{
+		"$group": bson.M{
+			"_id":   "$category",
+			"total": bson.M{"$sum": bson.M{"$toDecimal": "$amount"}},
+		},
+	})
 
-    summary := make(map[domain.ExpenseCategory]decimal.Decimal)
-    grandTotal := decimal.Zero
+	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, decimal.Zero, err
+	}
+	defer cursor.Close(ctx)
 
-    for cursor.Next(ctx) {
-        var result struct {
-            ID    string          `bson:"_id"`
-            Total decimal.Decimal `bson:"total"`
-        }
-        if err := cursor.Decode(&result); err != nil {
-            continue
-        }
-        category := domain.ExpenseCategory(result.ID)
-        summary[category] = result.Total
-        grandTotal = grandTotal.Add(result.Total)
-    }
+	summary := make(map[domain.ExpenseCategory]decimal.Decimal)
+	grandTotal := decimal.Zero
 
-    // Add categories with zero amount
-    for _, category := range domain.GetAllExpenseCategories() {
-        if _, exists := summary[category]; !exists {
-            summary[category] = decimal.Zero
-        }
-    }
+	for cursor.Next(ctx) {
+		var result struct {
+			ID    string          `bson:"_id"`
+			Total decimal.Decimal `bson:"total"`
+		}
+		if err := cursor.Decode(&result); err != nil {
+			continue
+		}
+		category := domain.ExpenseCategory(result.ID)
+		summary[category] = result.Total
+		grandTotal = grandTotal.Add(result.Total)
+	}
 
-    return summary, grandTotal, nil
+	// Add categories with zero amount
+	for _, category := range domain.GetAllExpenseCategories() {
+		if _, exists := summary[category]; !exists {
+			summary[category] = decimal.Zero
+		}
+	}
+
+	return summary, grandTotal, nil
 }
