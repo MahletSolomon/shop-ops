@@ -60,6 +60,7 @@ func main() {
 	expenseRepo := repositories.NewExpenseRepository(db)
 	inventoryRepo := repositories.NewInventoryRepository(db)
 	salesRepo := repositories.NewSalesRepository(db)
+	transactionRepo := repositories.NewTransactionRepository(db)
 
 	// Services
 	pwdService := infrastructure.NewPasswordService()
@@ -71,6 +72,7 @@ func main() {
 	expenseUsecase := usecases.NewExpenseUseCases(expenseRepo)
 	inventoryUC := usecases.NewInventoryUseCase(inventoryRepo, businessRepo)
 	salesUC := usecases.NewSalesUseCase(salesRepo, inventoryRepo, businessRepo)
+	transactionUsecase := usecases.NewTransactionUseCases(transactionRepo)
 
 	// Controllers
 	authController := controllers.NewAuthController(userUC)
@@ -79,6 +81,7 @@ func main() {
 	expenseController := controllers.NewExpenseController(expenseUsecase, businessUC)
 	inventoryController := controllers.NewInventoryController(inventoryUC, businessUC)
 	salesController := controllers.NewSalesController(salesUC, businessUC)
+	transactionController := controllers.NewTransactionController(transactionUsecase, businessUC)
 
 	// Router
 	r := routers.SetupRouter(
@@ -89,6 +92,7 @@ func main() {
 		expenseController,
 		inventoryController,
 		salesController,
+		transactionController,
 	)
 
 	port := os.Getenv("PORT")
