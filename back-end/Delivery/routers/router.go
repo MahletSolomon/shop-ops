@@ -17,6 +17,7 @@ func SetupRouter(
 	inventoryController *controllers.InventoryController,
 	salesController *controllers.SalesController,
 	transactionController *controllers.TransactionController,
+	profitController *controllers.ProfitController,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -83,6 +84,14 @@ func SetupRouter(
 					salesGroup.GET("/:saleId", salesController.GetSale)
 					salesGroup.PATCH("/:saleId", salesController.UpdateSale)
 					salesGroup.DELETE("/:saleId", salesController.VoidSale)
+				}
+
+				// Profit Routes (nested under business)
+				profitGroup := businessGroup.Group("/:businessId/profit")
+				{
+					profitGroup.GET("/summary", profitController.GetSummary)
+					profitGroup.GET("/trends", profitController.GetTrends)
+					profitGroup.GET("/compare", profitController.GetComparison)
 				}
 			}
 
