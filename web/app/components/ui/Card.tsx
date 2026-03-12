@@ -12,7 +12,7 @@ const Card = ({
   description
 }) => {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm">
+    <div className="rounded-xl border border-slate-200 bg-white text-slate-900 shadow-sm">
       <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
         <h3 className="tracking-tight text-sm font-medium text-slate-500">
           {title}

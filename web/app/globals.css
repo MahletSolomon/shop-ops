@@ -29,31 +29,61 @@ body {
 }
 
 :root[data-theme="dark"] .bg-white {
-  background-color: #0f172a !important;
+  background-color: #0b1220 !important;
 }
 
 :root[data-theme="dark"] .bg-slate-50,
 :root[data-theme="dark"] .bg-slate-50\/50,
 :root[data-theme="dark"] .bg-gray-50\/10,
-:root[data-theme="dark"] .bg-indigo-50,
-:root[data-theme="dark"] .bg-emerald-50 {
+:root[data-theme="dark"] .bg-gray-50,
+:root[data-theme="dark"] .bg-gray-50\/50,
+:root[data-theme="dark"] .bg-gray-100 {
   background-color: #111827 !important;
+}
+
+:root[data-theme="dark"] .bg-indigo-50 {
+  background-color: #1e293b !important;
+}
+
+:root[data-theme="dark"] .bg-indigo-100,
+:root[data-theme="dark"] .bg-emerald-50,
+:root[data-theme="dark"] .bg-emerald-100,
+:root[data-theme="dark"] .bg-red-50 {
+  background-color: #172033 !important;
 }
 
 :root[data-theme="dark"] .border-slate-200,
 :root[data-theme="dark"] .border-slate-100,
 :root[data-theme="dark"] .border-indigo-200,
-:root[data-theme="dark"] .border-emerald-100 {
+:root[data-theme="dark"] .border-emerald-100,
+:root[data-theme="dark"] .border-gray-300,
+:root[data-theme="dark"] .border-gray-200,
+:root[data-theme="dark"] .border-gray-100 {
   border-color: #334155 !important;
 }
 
+:root[data-theme="dark"] .text-slate-950,
 :root[data-theme="dark"] .text-slate-900,
+:root[data-theme="dark"] .text-gray-900 {
+  color: #f1f5f9 !important;
+}
+
 :root[data-theme="dark"] .text-slate-800,
 :root[data-theme="dark"] .text-slate-700,
+:root[data-theme="dark"] .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
 :root[data-theme="dark"] .text-slate-600,
+:root[data-theme="dark"] .text-gray-600,
 :root[data-theme="dark"] .text-slate-500,
+:root[data-theme="dark"] .text-gray-500,
 :root[data-theme="dark"] .text-slate-400 {
-  color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+}
+
+:root[data-theme="dark"] .text-gray-400 {
+  color: #64748b !important;
 }
 
 :root[data-theme="dark"] .shadow-sm,
@@ -61,8 +91,26 @@ body {
   box-shadow: 0 0 0 1px rgba(51, 65, 85, 0.25), 0 10px 15px -3px rgba(2, 6, 23, 0.35) !important;
 }
 
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background-color: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+  color: #64748b;
+}
+
 :root[data-theme="dark"] .hover\:bg-slate-50:hover,
 :root[data-theme="dark"] .hover\:bg-indigo-50:hover,
-:root[data-theme="dark"] .hover\:bg-red-50:hover {
+:root[data-theme="dark"] .hover\:bg-red-50:hover,
+:root[data-theme="dark"] .hover\:bg-gray-50:hover {
   background-color: #1e293b !important;
+}
+
+:root[data-theme="dark"] .hover\:text-indigo-600:hover {
+  color: #93c5fd !important;
 }
