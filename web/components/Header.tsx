@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "./Logo";
+import Link from "next/link";
 
 export default function Header() {
   return (
@@ -7,10 +8,10 @@ export default function Header() {
       <div className="w-full max-w-[1280px] h-[64px] flex items-center justify-between px-6 lg:px-0">
         <Logo className="text-black" />
         <div className="flex items-center gap-[20px]">
-          <a href="#" className="font-normal text-[14px] text-black hover:text-[#135bec] transition-colors">Login</a>
-          <button className="bg-[#135bec] text-white font-medium text-[14px] px-[16px] py-[8px] rounded-[8px] shadow-sm hover:bg-blue-700 transition-colors">
+          <Link href="/login" className="font-normal text-[14px] text-black hover:text-[#135bec] transition-colors">Login</Link>
+          <Link href="/sign-up" className="bg-[#135bec] text-white font-medium text-[14px] px-[16px] py-[8px] rounded-[8px] shadow-sm hover:bg-blue-700 transition-colors">
             Get Started
-          </button>
+          </Link>
         </div>
       </div>
     </header>

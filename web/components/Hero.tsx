@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 export default function Hero() {
@@ -16,9 +17,9 @@ export default function Hero() {
           <p className="font-normal text-[#3b3b3b] text-[16px] leading-[28px] max-w-[553px]">
             Track sales, manage inventory, and monitor expenses all in one powerful platform designed for mini-markets and retail stores.
           </p>
-          <button className="bg-[#135bec] text-white font-medium text-[16px] px-[24px] py-[12px] rounded-[8px] shadow-sm mt-2 hover:bg-blue-700 transition-colors hover:shadow-md">
+          <Link href="/sign-up" className="bg-[#135bec] text-white font-medium text-[16px] px-[24px] py-[12px] rounded-[8px] shadow-sm mt-2 hover:bg-blue-700 transition-colors hover:shadow-md">
             Start Free Trial
-          </button>
+          </Link>
         </div>
 
         {/* 3D Images Cluster - Desktop */}
