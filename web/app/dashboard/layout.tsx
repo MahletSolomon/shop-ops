@@ -4,7 +4,7 @@ import Header from "../components/ui/Header";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full w-full">
+    <div className="flex h-full w-full h-screen">
       <Sidebar />
       <div className="flex flex-col flex-1">
         <Header />
