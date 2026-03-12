@@ -128,7 +128,7 @@ export default function ProfilePage() {
         subtitle="Manage personal information, preferences, and security settings"
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card
           title="Role"
           value={savedProfile.role}
@@ -159,31 +159,31 @@ export default function ProfilePage() {
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-slate-100 p-4 sm:p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full border border-indigo-200 bg-indigo-100 text-lg font-bold text-indigo-700 flex items-center justify-center">
               {initials}
             </div>
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900">{activeProfile.fullName}</h2>
+            <div className="min-w-0">
+              <h2 className="text-lg font-semibold text-slate-900 break-words">{activeProfile.fullName}</h2>
               <p className="text-sm text-slate-500">{activeProfile.role}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
             {isEditing ? (
               <>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                  className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:w-auto"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                  className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 sm:w-auto"
                 >
                   Save changes
                 </button>
@@ -192,7 +192,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleStartEdit}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 sm:w-auto"
               >
                 Edit profile
               </button>
@@ -200,14 +200,14 @@ export default function ProfilePage() {
             <button
               type="button"
               onClick={handleResetDefaults}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:w-auto"
             >
               Reset defaults
             </button>
           </div>
         </div>
 
-        <div className="grid gap-6 p-6 lg:grid-cols-2">
+        <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-2">
           <section className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
               Personal Details
@@ -360,7 +360,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
             <User className="h-4 w-4 text-indigo-500" />
@@ -398,7 +398,7 @@ export default function ProfilePage() {
       <div className="flex flex-col w-full">
 
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Recent Activity
           </h3>
