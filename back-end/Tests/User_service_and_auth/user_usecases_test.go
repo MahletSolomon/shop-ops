@@ -280,3 +280,202 @@ func TestUpdateProfile(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 	})
 }
+
+func TestChangePassword(t *testing.T) {
+	userID := primitive.NewObjectID()
+	hashedPassword := "hashed_old_password"
+
+	t.Run("Success", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "OldPassword1!", hashedPassword).Return(true).Once()
+		mockPwd.On("Hash", "NewPassword1!").Return("hashed_new_password", nil).Once()
+		mockRepo.On("Update", mock.MatchedBy(func(u *domain.User) bool {
+			return u.PasswordHash == "hashed_new_password" && !u.UpdatedAt.IsZero()
+		})).Return(nil).Once()
+
+		req := &usecases.ChangePasswordRequest{
+			CurrentPassword: "OldPassword1!",
+			NewPassword:     "NewPassword1!",
+		}
+		err := uc.ChangePassword(userID.Hex(), req)
+
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+		mockPwd.AssertExpectations(t)
+	})
+
+	t.Run("Wrong Current Password", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "WrongPassword", hashedPassword).Return(false).Once()
+
+		req := &usecases.ChangePasswordRequest{
+			CurrentPassword: "WrongPassword",
+			NewPassword:     "NewPassword1!",
+		}
+		err := uc.ChangePassword(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Equal(t, "invalid current password", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("New Password Too Short", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "OldPassword1!", hashedPassword).Return(true).Once()
+
+		req := &usecases.ChangePasswordRequest{
+			CurrentPassword: "OldPassword1!",
+			NewPassword:     "short",
+		}
+		err := uc.ChangePassword(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Equal(t, "new password must be at least 8 characters", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("User Not Found", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		uc := usecases.NewUserUseCases(mockRepo, new(MockPasswordService), new(MockJWTService))
+
+		mockRepo.On("FindById", userID.Hex()).Return(nil, nil).Once()
+
+		req := &usecases.ChangePasswordRequest{
+			CurrentPassword: "OldPassword1!",
+			NewPassword:     "NewPassword1!",
+		}
+		err := uc.ChangePassword(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Equal(t, "user not found", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestChangePhone(t *testing.T) {
+	userID := primitive.NewObjectID()
+	hashedPassword := "hashed_password"
+
+	t.Run("Success", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, Phone: "+2341234567890", PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "MyPassword1!", hashedPassword).Return(true).Once()
+		mockRepo.On("FindByPhone", "+2349087654321").Return(nil, nil).Once()
+		mockRepo.On("Update", mock.MatchedBy(func(u *domain.User) bool {
+			return u.Phone == "+2349087654321" && !u.UpdatedAt.IsZero()
+		})).Return(nil).Once()
+
+		req := &usecases.ChangePhoneRequest{
+			CurrentPassword: "MyPassword1!",
+			NewPhone:        "+2349087654321",
+		}
+		result, err := uc.ChangePhone(userID.Hex(), req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "+2349087654321", result.Phone)
+		mockRepo.AssertExpectations(t)
+		mockPwd.AssertExpectations(t)
+	})
+
+	t.Run("Wrong Current Password", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, Phone: "+2341234567890", PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "WrongPassword", hashedPassword).Return(false).Once()
+
+		req := &usecases.ChangePhoneRequest{
+			CurrentPassword: "WrongPassword",
+			NewPhone:        "+2349087654321",
+		}
+		result, err := uc.ChangePhone(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "invalid current password", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Invalid Phone Format", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, Phone: "+2341234567890", PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "MyPassword1!", hashedPassword).Return(true).Once()
+
+		req := &usecases.ChangePhoneRequest{
+			CurrentPassword: "MyPassword1!",
+			NewPhone:        "123abc",
+		}
+		result, err := uc.ChangePhone(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "invalid phone format", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Duplicate Phone", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockPwd := new(MockPasswordService)
+		uc := usecases.NewUserUseCases(mockRepo, mockPwd, new(MockJWTService))
+		user := &domain.User{ID: userID, Phone: "+2341234567890", PasswordHash: hashedPassword}
+
+		mockRepo.On("FindById", userID.Hex()).Return(user, nil).Once()
+		mockPwd.On("Compare", "MyPassword1!", hashedPassword).Return(true).Once()
+		existingUser := &domain.User{Phone: "+2349087654321"}
+		mockRepo.On("FindByPhone", "+2349087654321").Return(existingUser, nil).Once()
+
+		req := &usecases.ChangePhoneRequest{
+			CurrentPassword: "MyPassword1!",
+			NewPhone:        "+2349087654321",
+		}
+		result, err := uc.ChangePhone(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "user with this phone already exists", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("User Not Found", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		uc := usecases.NewUserUseCases(mockRepo, new(MockPasswordService), new(MockJWTService))
+
+		mockRepo.On("FindById", userID.Hex()).Return(nil, nil).Once()
+
+		req := &usecases.ChangePhoneRequest{
+			CurrentPassword: "MyPassword1!",
+			NewPhone:        "+2349087654321",
+		}
+		result, err := uc.ChangePhone(userID.Hex(), req)
+
+		assert.Error(t, err)
+		assert.Nil(t, result)
+		assert.Equal(t, "user not found", err.Error())
+		mockRepo.AssertExpectations(t)
+	})
+}

@@ -8,6 +8,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Supported currencies: African currencies + common international ones
+var supportedCurrencies = map[string]bool{
+	// West Africa
+	"NGN": true, // Nigeria
+	"GHS": true, // Ghana
+	"XOF": true, // CFA Franc BCEAO (Senegal, Ivory Coast, Mali, Burkina Faso, Niger, Togo, Benin, Guinea-Bissau)
+	"SLL": true, // Sierra Leone
+	"GMD": true, // Gambia
+	"LRD": true, // Liberia
+	"GNF": true, // Guinea
+	// East Africa
+	"KES": true, // Kenya
+	"UGX": true, // Uganda
+	"TZS": true, // Tanzania
+	"RWF": true, // Rwanda
+	"ETB": true, // Ethiopia
+	"BIF": true, // Burundi
+	"SOS": true, // Somalia
+	"DJF": true, // Djibouti
+	// Southern Africa
+	"ZAR": true, // South Africa
+	"BWP": true, // Botswana
+	"ZMW": true, // Zambia
+	"MWK": true, // Malawi
+	"MZN": true, // Mozambique
+	"NAD": true, // Namibia
+	"SZL": true, // Eswatini
+	"LSL": true, // Lesotho
+	"ZWL": true, // Zimbabwe
+	// Central Africa
+	"XAF": true, // CFA Franc BEAC (Cameroon, Chad, Congo, Gabon, Equatorial Guinea, CAR)
+	"CDF": true, // DR Congo
+	// North Africa
+	"EGP": true, // Egypt
+	"MAD": true, // Morocco
+	"TND": true, // Tunisia
+	"DZD": true, // Algeria
+	"LYD": true, // Libya
+	"SDG": true, // Sudan
+	// International
+	"USD": true,
+	"EUR": true,
+	"GBP": true,
+}
+
+var supportedCurrencyList = func() []string {
+	keys := make([]string, 0, len(supportedCurrencies))
+	for k := range supportedCurrencies {
+		keys = append(keys, k)
+	}
+	return keys
+}()
+
 type BusinessController struct {
 	businessUseCases usecases.BusinessUseCases
 }
@@ -32,9 +85,8 @@ func (c *BusinessController) Create(ctx *gin.Context) {
 	}
 
 	if req.Currency != "" {
-		validCurrencies := map[string]bool{"NGN": true, "KES": true, "GHS": true, "USD": true, "EUR": true, "ZAR": true, "RWF": true, "UGX": true, "TZS": true}
-		if !validCurrencies[req.Currency] {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid currency", "supported_currencies": []string{"NGN", "KES", "GHS", "USD", "EUR", "ZAR", "RWF", "UGX", "TZS"}, "code": "VAL_001"})
+		if !supportedCurrencies[req.Currency] {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid currency", "supported_currencies": supportedCurrencyList, "code": "VAL_001"})
 			return
 		}
 	}
@@ -116,6 +168,13 @@ func (c *BusinessController) Update(ctx *gin.Context) {
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
+	}
+
+	if req.Currency != "" {
+		if !supportedCurrencies[req.Currency] {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid currency", "supported_currencies": supportedCurrencyList, "code": "VAL_001"})
+			return
+		}
 	}
 
 	business, err := c.businessUseCases.Update(businessId, userId, &req)

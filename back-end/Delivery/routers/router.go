@@ -51,6 +51,8 @@ func SetupRouter(
 			{
 				userGroup.GET("/me", userController.GetProfile)
 				userGroup.PATCH("/me", userController.UpdateProfile)
+				userGroup.PUT("/me/password", userController.ChangePassword)
+				userGroup.PUT("/me/phone", userController.ChangePhone)
 			}
 
 			// Business Routes
