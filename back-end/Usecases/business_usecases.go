@@ -14,6 +14,7 @@ type CreateBusinessRequest struct {
 	Name     string `json:"name"`
 	Currency string `json:"currency"`
 	Language string `json:"language"`
+	Timezone string `json:"timezone"`
 }
 
 type UpdateBusinessRequest struct {
@@ -51,7 +52,7 @@ func (b *businessUseCases) Create(userId string, req *CreateBusinessRequest) (*d
 		return nil, errors.New("business with this name already exists")
 	}
 
-	business := domain.NewBusiness(uID, req.Name, req.Currency, req.Language)
+	business := domain.NewBusiness(uID, req.Name, req.Currency, req.Language, req.Timezone)
 	if err := business.Validate(); err != nil {
 		return nil, err
 	}

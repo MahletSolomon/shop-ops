@@ -22,13 +22,14 @@ type Business struct {
 	Name      string             `bson:"name" json:"name"`
 	Currency  string             `bson:"currency" json:"currency"`
 	Language  string             `bson:"language" json:"language"`
+	Timezone  string             `bson:"timezone" json:"timezone"`
 	Tier      SubscriptionTier   `bson:"tier" json:"tier"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 // NewBusiness creates a new Business instance with default settings
-func NewBusiness(userID primitive.ObjectID, name, currency, language string) *Business {
+func NewBusiness(userID primitive.ObjectID, name, currency, language, timezone string) *Business {
 	now := time.Now()
 	// Set defaults if empty
 	if currency == "" {
@@ -37,6 +38,9 @@ func NewBusiness(userID primitive.ObjectID, name, currency, language string) *Bu
 	if language == "" {
 		language = "en"
 	}
+	if timezone == "" {
+		timezone = "UTC"
+	}
 
 	return &Business{
 		ID:        primitive.NewObjectID(),
@@ -44,6 +48,7 @@ func NewBusiness(userID primitive.ObjectID, name, currency, language string) *Bu
 		Name:      name,
 		Currency:  currency,
 		Language:  language,
+		Timezone:  timezone,
 		Tier:      TierFree, // Default to FREE tier
 		CreatedAt: now,
 		UpdatedAt: now,

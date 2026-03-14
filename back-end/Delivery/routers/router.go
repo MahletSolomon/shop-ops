@@ -19,6 +19,7 @@ func SetupRouter(
 	transactionController *controllers.TransactionController,
 	profitController *controllers.ProfitController,
 	restoreController *controllers.RestoreController,
+	reportController *controllers.ReportController,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -121,6 +122,15 @@ func SetupRouter(
 			{
 				restoreGroup.GET("", restoreController.FullRestore)
 				restoreGroup.GET("/incremental", restoreController.IncrementalRestore)
+			}
+
+			// Report Routes
+			reportGroup := protected.Group("/reports")
+			{
+				reportGroup.GET("/sales", reportController.GetSalesReport)
+				reportGroup.GET("/expenses", reportController.GetExpenseReport)
+				reportGroup.GET("/profit", reportController.GetProfitReport)
+				reportGroup.GET("/inventory", reportController.GetInventoryReport)
 			}
 
 			log.Println("=== ROUTES SAVED ===")
