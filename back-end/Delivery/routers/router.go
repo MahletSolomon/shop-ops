@@ -20,6 +20,7 @@ func SetupRouter(
 	profitController *controllers.ProfitController,
 	restoreController *controllers.RestoreController,
 	reportController *controllers.ReportController,
+	exportController *controllers.ExportController,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -43,6 +44,10 @@ func SetupRouter(
 			authGroup.POST("/login", authController.Login)
 			authGroup.POST("/refresh", authController.RefreshToken)
 		}
+
+		// Public Download Route (could be protected but depends on client download approach)
+		// Usually a temporary signed URL is better, but this suffices for MVP
+		api.GET("/download/:filename", exportController.DownloadExport)
 
 		// Protected Routes
 		protected := api.Group("/")
@@ -131,6 +136,14 @@ func SetupRouter(
 				reportGroup.GET("/expenses", reportController.GetExpenseReport)
 				reportGroup.GET("/profit", reportController.GetProfitReport)
 				reportGroup.GET("/inventory", reportController.GetInventoryReport)
+			}
+
+			// Export Routes
+			exportGroup := protected.Group("/export")
+			{
+				exportGroup.POST("", exportController.RequestExport)
+				exportGroup.GET("/history", exportController.GetExportHistory)
+				exportGroup.GET("/:exportId", exportController.GetExportStatus)
 			}
 
 			log.Println("=== ROUTES SAVED ===")

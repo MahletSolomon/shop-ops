@@ -61,10 +61,12 @@ func main() {
 	salesRepo := repositories.NewSalesRepository(db)
 	transactionRepo := repositories.NewTransactionRepository(db)
 	reportRepo := repositories.NewReportRepository(db)
+	exportRepo := repositories.NewExportRepository(db)
 
 	// Services
 	pwdService := infrastructure.NewPasswordService()
 	jwtService := infrastructure.NewJWTService()
+	exportService := infrastructure.NewExportService("tmp/exports")
 
 	// Use Cases
 	userUC := usecases.NewUserUseCases(userRepo, pwdService, jwtService)
@@ -76,6 +78,7 @@ func main() {
 	profitUC := usecases.NewProfitUseCase(salesRepo, expenseRepo, businessRepo)
 	restoreUC := usecases.NewRestoreUseCases(salesRepo, expenseRepo, inventoryRepo)
 	reportUC := usecases.NewReportUsecases(reportRepo, businessRepo)
+	exportUC := usecases.NewExportUsecases(exportRepo, exportService, salesRepo, inventoryRepo, expenseRepo, transactionRepo)
 
 	// Controllers
 	authController := controllers.NewAuthController(userUC)
@@ -88,6 +91,7 @@ func main() {
 	profitController := controllers.NewProfitController(profitUC, businessUC)
 	restoreController := controllers.NewRestoreController(restoreUC, businessUC)
 	reportController := controllers.NewReportController(reportUC, businessUC)
+	exportController := controllers.NewExportController(exportUC, businessUC)
 
 	// Router
 	r := routers.SetupRouter(
@@ -102,6 +106,7 @@ func main() {
 		profitController,
 		restoreController,
 		reportController,
+		exportController,
 	)
 
 	port := os.Getenv("PORT")
