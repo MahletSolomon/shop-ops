@@ -45,10 +45,6 @@ func SetupRouter(
 			authGroup.POST("/refresh", authController.RefreshToken)
 		}
 
-		// Public Download Route (could be protected but depends on client download approach)
-		// Usually a temporary signed URL is better, but this suffices for MVP
-		api.GET("/download/:filename", exportController.DownloadExport)
-
 		// Protected Routes
 		protected := api.Group("/")
 		protected.Use(infrastructure.AuthMiddleware(jwtService))
@@ -145,6 +141,9 @@ func SetupRouter(
 				exportGroup.GET("/history", exportController.GetExportHistory)
 				exportGroup.GET("/:exportId", exportController.GetExportStatus)
 			}
+
+			// Download Route (Protected)
+			protected.GET("/download/:filename", exportController.DownloadExport)
 
 			log.Println("=== ROUTES SAVED ===")
 			for _, route := range r.Routes() {

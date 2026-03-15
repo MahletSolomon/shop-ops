@@ -91,7 +91,14 @@ func (uc *ExportUsecasesImpl) RequestExport(businessID, userID, exportType, form
 	}
 
 	// Launch async export generation
-	go uc.generateExport(req)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				uc.exportRepo.UpdateStatus(req.ID, Domain.ExportStatusFailed, "", fmt.Sprintf("internal error during export: %v", r))
+			}
+		}()
+		uc.generateExport(req)
+	}()
 
 	return req, nil
 }
@@ -273,6 +280,7 @@ func (uc *ExportUsecasesImpl) generateExport(req *Domain.ExportRequest) {
 	if err != nil {
 		uc.exportRepo.UpdateStatus(req.ID, Domain.ExportStatusFailed, "", err.Error())
 	} else {
-		uc.exportRepo.UpdateStatus(req.ID, Domain.ExportStatusCompleted, "/download/"+fileURL, "")
+		// Return without leading slash so clients appending to base_url don't get //download
+		uc.exportRepo.UpdateStatus(req.ID, Domain.ExportStatusCompleted, "download/"+fileURL, "")
 	}
 }

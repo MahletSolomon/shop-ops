@@ -1,8 +1,6 @@
 package domain
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -160,53 +158,6 @@ func NewInventoryReport(totalProducts int, lowStock, outOfStock []InventoryItem)
 	}
 }
 
-// ToCSV converts SalesReport to CSV string
-func (sr *SalesReport) ToCSV() string {
-	var sb strings.Builder
-	sb.WriteString("Product Name,Total Sales,Quantity\n")
-	for _, p := range sr.TopProducts {
-		sb.WriteString(fmt.Sprintf("%s,%s,%d\n", p.ProductName, p.TotalSales.String(), p.Quantity))
-	}
-	return sb.String()
-}
-
-// ToCSV converts ExpenseReport to CSV string
-func (er *ExpenseReport) ToCSV() string {
-	var sb strings.Builder
-	sb.WriteString("Category,Total Amount,Transaction Count\n")
-	for _, c := range er.ByCategory {
-		sb.WriteString(fmt.Sprintf("%s,%s,%d\n", c.Category, c.TotalAmount.String(), c.TransactionCount))
-	}
-	return sb.String()
-}
-
-// ToCSV converts ProfitSummary to CSV string (for grouped data if available)
-func (ps *ProfitSummary) ToCSV() string {
-	var sb strings.Builder
-	if ps.GroupBy != "" && len(ps.GroupedData) > 0 {
-		sb.WriteString("Period,Sales,Expenses,Profit\n")
-		for _, g := range ps.GroupedData {
-			sb.WriteString(fmt.Sprintf("%s,%s,%s,%s\n", g.Period, g.Sales.String(), g.Expenses.String(), g.Profit.String()))
-		}
-	} else {
-		sb.WriteString("Total Sales,Total Expenses,Profit\n")
-		sb.WriteString(fmt.Sprintf("%s,%s,%s\n", ps.TotalSales.String(), ps.TotalExpenses.String(), ps.Profit.String()))
-	}
-	return sb.String()
-}
-
-// ToCSV converts InventoryReport to CSV string
-func (ir *InventoryReport) ToCSV() string {
-	var sb strings.Builder
-	sb.WriteString("Product Name,Current Stock,Low Stock Threshold,Is Low Stock\n")
-	for _, p := range ir.LowStockProducts {
-		sb.WriteString(fmt.Sprintf("%s,%d,%d,%t\n", p.ProductName, p.CurrentStock, p.LowStockThreshold, p.IsLowStock))
-	}
-	for _, p := range ir.OutOfStockProducts {
-		sb.WriteString(fmt.Sprintf("%s,%d,%d,%t\n", p.ProductName, p.CurrentStock, p.LowStockThreshold, p.IsLowStock))
-	}
-	return sb.String()
-}
 
 // ReportRepository defines the interface for report data access
 type ReportRepository interface {

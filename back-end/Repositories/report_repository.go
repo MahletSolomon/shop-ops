@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	Domain "shop-ops/Domain"
@@ -45,8 +46,8 @@ func (r *ReportRepository) GetSalesReportData(businessID primitive.ObjectID, dat
 
 	// Aggregate total sales and orders
 	totalPipeline := mongo.Pipeline{
-		{{"$match", matchStage}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: matchStage}},
+		{{Key: "$group", Value: bson.M{
 			"_id":          nil,
 			"total_sales":  bson.M{"$sum": "$total"},
 			"total_orders": bson.M{"$sum": 1},
@@ -71,15 +72,15 @@ func (r *ReportRepository) GetSalesReportData(businessID primitive.ObjectID, dat
 
 	// Aggregate top products
 	topProductsPipeline := mongo.Pipeline{
-		{{"$match", matchStage}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: matchStage}},
+		{{Key: "$group", Value: bson.M{
 			"_id":          "$product_id",
 			"product_name": bson.M{"$first": "$product_name"}, // Assuming product_name is stored
 			"total_sales":  bson.M{"$sum": "$total"},
 			"quantity":     bson.M{"$sum": "$quantity"},
 		}}},
-		{{"$sort", bson.M{"total_sales": -1}}},
-		{{"$limit", 10}},
+		{{Key: "$sort", Value: bson.M{"total_sales": -1}}},
+		{{Key: "$limit", Value: 10}},
 	}
 
 	cursor, err = r.salesCollection.Aggregate(ctx, topProductsPipeline)
@@ -158,8 +159,8 @@ func (r *ReportRepository) GetExpenseReportData(businessID primitive.ObjectID, d
 
 	// Aggregate totals
 	totalPipeline := mongo.Pipeline{
-		{{"$match", matchStage}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: matchStage}},
+		{{Key: "$group", Value: bson.M{
 			"_id":                nil,
 			"total_expenses":     bson.M{"$sum": "$amount"},
 			"total_transactions": bson.M{"$sum": 1},
@@ -184,13 +185,13 @@ func (r *ReportRepository) GetExpenseReportData(businessID primitive.ObjectID, d
 
 	// By category
 	categoryPipeline := mongo.Pipeline{
-		{{"$match", matchStage}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: matchStage}},
+		{{Key: "$group", Value: bson.M{
 			"_id":               "$category",
 			"total_amount":      bson.M{"$sum": "$amount"},
 			"transaction_count": bson.M{"$sum": 1},
 		}}},
-		{{"$sort", bson.M{"total_amount": -1}}},
+		{{Key: "$sort", Value: bson.M{"total_amount": -1}}},
 	}
 
 	cursor, err = r.expensesCollection.Aggregate(ctx, categoryPipeline)
@@ -266,8 +267,8 @@ func (r *ReportRepository) GetProfitReportData(businessID primitive.ObjectID, da
 		"is_voided": bson.M{"$ne": true},
 	}
 	salesPipeline := mongo.Pipeline{
-		{{"$match", salesMatch}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: salesMatch}},
+		{{Key: "$group", Value: bson.M{
 			"_id":         nil,
 			"total_sales": bson.M{"$sum": "$total"},
 		}}},
@@ -276,7 +277,7 @@ func (r *ReportRepository) GetProfitReportData(businessID primitive.ObjectID, da
 	if err != nil {
 		return nil, fmt.Errorf("failed to aggregate sales for profit: %w", err)
 	}
-	var salesTotal float64
+	var salesTotal decimal.Decimal
 	if cursor.Next(ctx) {
 		var result struct {
 			TotalSales float64 `bson:"total_sales"`
@@ -284,7 +285,7 @@ func (r *ReportRepository) GetProfitReportData(businessID primitive.ObjectID, da
 		if err := cursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("failed to decode sales total: %w", err)
 		}
-		salesTotal = result.TotalSales
+		salesTotal = decimal.NewFromFloat(result.TotalSales)
 	}
 	cursor.Close(ctx)
 
@@ -298,8 +299,8 @@ func (r *ReportRepository) GetProfitReportData(businessID primitive.ObjectID, da
 		"is_voided": bson.M{"$ne": true},
 	}
 	expensesPipeline := mongo.Pipeline{
-		{{"$match", expensesMatch}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: expensesMatch}},
+		{{Key: "$group", Value: bson.M{
 			"_id":            nil,
 			"total_expenses": bson.M{"$sum": "$amount"},
 		}}},
@@ -323,12 +324,59 @@ func (r *ReportRepository) GetProfitReportData(businessID primitive.ObjectID, da
 	// Grouped data if needed
 	var groupedData []Domain.ProfitGroup
 	if groupBy != "" {
-		// This would require more complex aggregation, for now skip
-		// Could implement by grouping sales and expenses separately then combining
+		salesGroupPipeline := r.buildGroupedPipeline(salesMatch, string(groupBy), "sales")
+		sCursor, sErr := r.salesCollection.Aggregate(ctx, salesGroupPipeline)
+		var salesMap = make(map[string]decimal.Decimal)
+		if sErr == nil {
+			defer sCursor.Close(ctx)
+			for sCursor.Next(ctx) {
+				var res struct {
+					Period string          `bson:"_id"`
+					Sales  decimal.Decimal `bson:"total_sales"`
+				}
+				if sCursor.Decode(&res) == nil {
+					salesMap[res.Period] = res.Sales
+				}
+			}
+		}
+
+		expGroupPipeline := r.buildGroupedPipeline(expensesMatch, string(groupBy), "expenses")
+		eCursor, eErr := r.expensesCollection.Aggregate(ctx, expGroupPipeline)
+		var expMap = make(map[string]decimal.Decimal)
+		if eErr == nil {
+			defer eCursor.Close(ctx)
+			for eCursor.Next(ctx) {
+				var res struct {
+					Period   string          `bson:"_id"`
+					Expenses decimal.Decimal `bson:"total_amount"`
+				}
+				if eCursor.Decode(&res) == nil {
+					expMap[res.Period] = res.Expenses
+				}
+			}
+		}
+
+		periods := make(map[string]bool)
+		for p := range salesMap { periods[p] = true }
+		for p := range expMap { periods[p] = true }
+
+		for p := range periods {
+			s := salesMap[p]
+			e := expMap[p]
+			groupedData = append(groupedData, Domain.ProfitGroup{
+				Period:   p,
+				Sales:    s,
+				Expenses: e,
+				Profit:   s.Sub(e),
+			})
+		}
+		sort.Slice(groupedData, func(i, j int) bool {
+			return groupedData[i].Period < groupedData[j].Period
+		})
 	}
 
 	return &Domain.ProfitReportData{
-		TotalSales:    decimal.NewFromFloat(salesTotal),
+		TotalSales:    salesTotal,
 		TotalExpenses: expensesTotal,
 		GroupedData:   groupedData,
 	}, nil
@@ -340,8 +388,8 @@ func (r *ReportRepository) GetInventoryReportData(businessID primitive.ObjectID)
 	defer cancel()
 
 	pipeline := mongo.Pipeline{
-		{{"$match", bson.M{"business_id": businessID}}},
-		{{"$project", bson.M{
+		{{Key: "$match", Value: bson.M{"business_id": businessID}}},
+		{{Key: "$project", Value: bson.M{
 			"_id":                 1,
 			"name":                1,
 			"stock_quantity":      1,
@@ -421,12 +469,12 @@ func (r *ReportRepository) buildGroupedPipeline(matchStage bson.M, groupBy, coll
 	}
 
 	return mongo.Pipeline{
-		{{"$match", matchStage}},
-		{{"$group", bson.M{
+		{{Key: "$match", Value: matchStage}},
+		{{Key: "$group", Value: bson.M{
 			"_id":           groupID,
 			amountFieldName: bson.M{"$sum": sumField},
 			countFieldName:  bson.M{"$sum": 1},
 		}}},
-		{{"$sort", bson.M{"_id": 1}}},
+		{{Key: "$sort", Value: bson.M{"_id": 1}}},
 	}
 }
