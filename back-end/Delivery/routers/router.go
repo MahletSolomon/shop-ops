@@ -14,6 +14,8 @@ func SetupRouter(
 	businessController *controllers.BusinessController,
 	jwtService *infrastructure.JWTService,
 	expenseController *controllers.ExpenseController,
+	transactionController *controllers.TransactionController,
+	syncController *controllers.SyncController,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -71,6 +73,21 @@ func SetupRouter(
 				expenseGroup.PATCH("/:expenseId", expenseController.UpdateExpense)
 				expenseGroup.DELETE("/:expenseId", expenseController.VoidExpense)
 			}
+
+			// Transaction Routes (Data Explorer - Unified View)
+			transactionGroup := protected.Group("/transactions")
+			{
+				transactionGroup.GET("", transactionController.GetTransactions)
+			}
+
+			// Sync Routes (Offline-first data synchronization)
+			syncGroup := protected.Group("/sync")
+			{
+				syncGroup.POST("/batch", syncController.SyncBatch)
+				syncGroup.GET("/status", syncController.GetSyncStatus)
+				syncGroup.GET("/history", syncController.GetSyncHistory)
+			}
+
 			log.Println("=== ROUTES SAVED ===")
 			for _, route := range r.Routes() {
 				log.Printf("[ROUTE] %s %s", route.Method, route.Path)

@@ -58,6 +58,8 @@ func main() {
 	userRepo := repositories.NewUserRepository(db)
 	businessRepo := repositories.NewBusinessRepository(db)
 	expenseRepo := repositories.NewExpenseRepository(db) 
+	transactionRepo := repositories.NewTransactionRepository(db)
+	syncRepo := repositories.NewSyncRepository(db)
 
 	// Services
 	pwdService := infrastructure.NewPasswordService()
@@ -67,15 +69,19 @@ func main() {
 	userUC := usecases.NewUserUseCases(userRepo, pwdService, jwtService)
 	businessUC := usecases.NewBusinessUseCases(businessRepo)
 	expenseUsecase := usecases.NewExpenseUseCases(expenseRepo)
+	transactionUsecase := usecases.NewTransactionUseCases(transactionRepo)
+	syncUsecase := usecases.NewSyncUseCases(syncRepo)
 
 	// Controllers
 	authController := controllers.NewAuthController(userUC)
 	userController := controllers.NewUserController(userUC)
 	businessController := controllers.NewBusinessController(businessUC)
 	expenseController := controllers.NewExpenseController(expenseUsecase, businessUC)
+	transactionController := controllers.NewTransactionController(transactionUsecase, businessUC)
+	syncController := controllers.NewSyncController(syncUsecase, businessUC)
 
 	// Router
-	r := routers.SetupRouter(authController, userController, businessController, jwtService, expenseController)
+	r := routers.SetupRouter(authController, userController, businessController, jwtService, expenseController, transactionController, syncController)
 
 	port := os.Getenv("PORT")
 	if port == "" {
