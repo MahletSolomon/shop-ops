@@ -22,3 +22,7 @@ go.work
 
 # MacOS
 .DS_Store
+
+# Generated export files
+tmp/exports/*.csv
+Tests/Business_service/test_exports/*.csv
