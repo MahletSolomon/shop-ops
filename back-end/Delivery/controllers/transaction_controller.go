@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	domain "shop-ops/Domain"
+	infrastructure "shop-ops/Infrastructure"
 	usecases "shop-ops/Usecases"
 	"strconv"
 	"time"
@@ -17,6 +17,7 @@ import (
 type TransactionController struct {
 	transactionUseCases *usecases.TransactionUseCases
 	businessUseCases    usecases.BusinessUseCases
+	logger              *infrastructure.Logger
 }
 
 // TransactionResponse represents a single transaction in the API response
@@ -50,10 +51,12 @@ type TransactionListResponse struct {
 func NewTransactionController(
 	transactionUseCases *usecases.TransactionUseCases,
 	businessUseCases usecases.BusinessUseCases,
+	logger *infrastructure.Logger,
 ) *TransactionController {
 	return &TransactionController{
 		transactionUseCases: transactionUseCases,
 		businessUseCases:    businessUseCases,
+		logger:              logger,
 	}
 }
 
@@ -75,7 +78,7 @@ func NewTransactionController(
 func (ctrl *TransactionController) GetTransactions(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		log.Println("❌ User ID not found in context")
+		ctrl.logger.Warn("TRANSACTION", "User ID not found in context")
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "User not authenticated",
 			"code":  "AUTH_001",
@@ -245,7 +248,7 @@ func (ctrl *TransactionController) GetTransactions(c *gin.Context) {
 	// Get transactions
 	result, err := ctrl.transactionUseCases.GetTransactions(filterReq)
 	if err != nil {
-		log.Printf("❌ Error fetching transactions: %v", err)
+		ctrl.logger.Error("TRANSACTION", "Error fetching transactions: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to fetch transactions",
 			"code":  "SYS_001",

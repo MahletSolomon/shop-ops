@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"log"
 	"shop-ops/Delivery/controllers"
 	infrastructure "shop-ops/Infrastructure"
 
@@ -22,8 +21,11 @@ func SetupRouter(
 	reportController *controllers.ReportController,
 	exportController *controllers.ExportController,
 	syncController *controllers.SyncController,
+	logger *infrastructure.Logger,
 ) *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(infrastructure.RequestLogger(logger))
+	r.Use(gin.Recovery())
 
 	// Health check (public, sans version)
 	r.GET("/ping", func(c *gin.Context) {
@@ -48,7 +50,7 @@ func SetupRouter(
 
 		// Protected Routes
 		protected := api.Group("/")
-		protected.Use(infrastructure.AuthMiddleware(jwtService))
+		protected.Use(infrastructure.AuthMiddleware(jwtService, logger))
 		{
 			// User Routes
 			userGroup := protected.Group("/users")
@@ -154,10 +156,7 @@ func SetupRouter(
 				syncGroup.GET("/history", syncController.GetSyncHistory)
 			}
 
-			log.Println("=== ROUTES SAVED ===")
-			for _, route := range r.Routes() {
-				log.Printf("[ROUTE] %s %s", route.Method, route.Path)
-			}
+			logger.Debug("ROUTER", "All routes registered successfully")
 		}
 	}
 

@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	domain "shop-ops/Domain"
+	infrastructure "shop-ops/Infrastructure"
 	usecases "shop-ops/Usecases"
 	"strconv"
 	"time"
@@ -16,6 +16,7 @@ import (
 type ExpenseController struct {
 	expenseUseCases  *usecases.ExpenseUseCases
 	businessUseCases usecases.BusinessUseCases
+	logger           *infrastructure.Logger
 }
 
 type RecordExpenseRequest struct {
@@ -66,10 +67,12 @@ type PaginatedResponse struct {
 func NewExpenseController(
 	expenseUseCases *usecases.ExpenseUseCases,
 	businessUseCases usecases.BusinessUseCases,
+	logger *infrastructure.Logger,
 ) *ExpenseController {
 	return &ExpenseController{
 		expenseUseCases:  expenseUseCases,
 		businessUseCases: businessUseCases,
+		logger:           logger,
 	}
 }
 
@@ -77,18 +80,18 @@ func NewExpenseController(
 func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		log.Println("❌ User ID not found in context")
+		ctrl.logger.Warn("EXPENSE", "User ID not found in context")
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": "User not authenticated",
 			"code":  "AUTH_001",
 		})
 		return
 	}
-	log.Printf("👤 User authenticated: %s", userID)
+	ctrl.logger.Debug("EXPENSE", "User authenticated: %s", userID)
 
 	var req RecordExpenseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Printf("❌ Invalid request body: %v", err)
+		ctrl.logger.Warn("EXPENSE", "Invalid request body: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Invalid request body",
 			"details": err.Error(),
@@ -96,11 +99,11 @@ func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 		})
 		return
 	}
-	log.Printf("📝 Request body: %+v", req)
+	ctrl.logger.Debug("EXPENSE", "Request body: %+v", req)
 
 	businessID, err := primitive.ObjectIDFromHex(req.BusinessID)
 	if err != nil {
-		log.Printf("❌ Invalid business ID format: %s", req.BusinessID)
+		ctrl.logger.Warn("EXPENSE", "Invalid business ID format: %s", req.BusinessID)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid business ID format",
 			"code":  "VAL_002",
@@ -110,7 +113,7 @@ func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 
 	business, err := ctrl.businessUseCases.GetById(req.BusinessID)
 	if err != nil {
-		log.Printf("❌ Business not found: %v", err)
+		ctrl.logger.Warn("EXPENSE", "Business not found: %v", err)
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Business not found",
 			"code":  "BIZ_001",
@@ -119,14 +122,14 @@ func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 	}
 
 	if business.UserID.Hex() != userID {
-		log.Printf("❌ User %s is not owner of business %s", userID, req.BusinessID)
+		ctrl.logger.Warn("EXPENSE", "User %s is not owner of business %s", userID, req.BusinessID)
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "You don't have permission to create expenses for this business",
 			"code":  "AUTH_003",
 		})
 		return
 	}
-	log.Printf("✅ User %s is owner of business %s", userID, req.BusinessID)
+	ctrl.logger.Debug("EXPENSE", "User %s is owner of business %s", userID, req.BusinessID)
 
 	amount := decimal.NewFromFloat(req.Amount)
 
@@ -138,7 +141,7 @@ func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 	})
 
 	if err != nil {
-		log.Printf("❌ Error creating expense: %v", err)
+		ctrl.logger.Error("EXPENSE", "Error creating expense: %v", err)
 		switch err {
 		case domain.ErrInvalidCategory:
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -159,7 +162,7 @@ func (ctrl *ExpenseController) RecordExpense(c *gin.Context) {
 		return
 	}
 
-	log.Printf("✅ Expense created successfully with ID: %s", expense.ID.Hex())
+	ctrl.logger.Info("EXPENSE", "Expense created successfully with ID: %s", expense.ID.Hex())
 	c.JSON(http.StatusCreated, toExpenseResponse(expense))
 }
 
@@ -617,7 +620,7 @@ func (ctrl *ExpenseController) GetSummary(c *gin.Context) {
 
 	summary, err := ctrl.expenseUseCases.GetExpensesByCategory(businessObjID, dateRange)
 	if err != nil {
-		log.Printf("❌ Failed to fetch expense summary: %v", err)
+		ctrl.logger.Error("EXPENSE", "Failed to fetch expense summary: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Code:    "SYS_001",
 			Message: "Failed to fetch summary",

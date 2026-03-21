@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
+func AuthMiddleware(jwtService *JWTService, logger *Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -26,12 +25,12 @@ func AuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
 		tokenString := parts[1]
 		token, err := jwtService.ValidateToken(tokenString)
 		if err != nil {
-			log.Printf("[AUTH] Token validation error: %v", err)
+			logger.Warn("AUTH", "Token validation error: %v", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			return
 		}
 		if token == nil || !token.Valid {
-			log.Println("[AUTH] Token is nil or not valid")
+			logger.Warn("AUTH", "Token is nil or not valid")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			return
 		}
@@ -51,7 +50,7 @@ func AuthMiddleware(jwtService *JWTService) gin.HandlerFunc {
 		// Enforce token type
 		tokenType, ok := claims["type"].(string)
 		if !ok || tokenType != "access" {
-			log.Printf("[AUTH] Rejected token type: %v", claims["type"])
+			logger.Warn("AUTH", "Rejected token type: %v", claims["type"])
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type"})
 			return
 		}

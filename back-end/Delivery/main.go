@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
@@ -19,8 +18,16 @@ import (
 func main() {
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
+		// This is fine in production where env vars are set directly
 	}
+
+	// Initialize logger
+	logger := infrastructure.NewLogger(
+		os.Getenv("LOG_LEVEL"),
+		os.Getenv("LOG_FILE"),
+	)
+
+	logger.Info("APP", "Starting ShopOps backend...")
 
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
@@ -37,19 +44,19 @@ func main() {
 
 	client, err := mongo.Connect(ctx, infrastructure.NewMongoClientOptions(mongoURI))
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal("DB", "Failed to connect to MongoDB: %v", err)
 	}
 	defer func() {
 		if err = client.Disconnect(context.Background()); err != nil {
-			log.Fatal(err)
+			logger.Error("DB", "Error disconnecting from MongoDB: %v", err)
 		}
 	}()
 
 	// Ping database
 	if err = client.Ping(ctx, nil); err != nil {
-		log.Fatal("Could not connect to MongoDB:", err)
+		logger.Fatal("DB", "Could not ping MongoDB: %v", err)
 	}
-	log.Println("Connected to MongoDB")
+	logger.Info("DB", "Connected to MongoDB successfully")
 
 	db := client.Database(dbName)
 
@@ -86,10 +93,10 @@ func main() {
 	authController := controllers.NewAuthController(userUC)
 	userController := controllers.NewUserController(userUC)
 	businessController := controllers.NewBusinessController(businessUC)
-	expenseController := controllers.NewExpenseController(expenseUsecase, businessUC)
+	expenseController := controllers.NewExpenseController(expenseUsecase, businessUC, logger)
 	inventoryController := controllers.NewInventoryController(inventoryUC, businessUC)
 	salesController := controllers.NewSalesController(salesUC, businessUC)
-	transactionController := controllers.NewTransactionController(transactionUsecase, businessUC)
+	transactionController := controllers.NewTransactionController(transactionUsecase, businessUC, logger)
 	profitController := controllers.NewProfitController(profitUC, businessUC)
 	restoreController := controllers.NewRestoreController(restoreUC, businessUC)
 	reportController := controllers.NewReportController(reportUC, businessUC)
@@ -111,6 +118,7 @@ func main() {
 		reportController,
 		exportController,
 		syncController,
+		logger,
 	)
 
 	port := os.Getenv("PORT")
@@ -118,8 +126,8 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Server starting on port %s", port)
+	logger.Info("APP", "Server starting on port %s", port)
 	if err := r.Run(":" + port); err != nil {
-		log.Fatal("Failed to start server:", err)
+		logger.Fatal("APP", "Failed to start server: %v", err)
 	}
 }
