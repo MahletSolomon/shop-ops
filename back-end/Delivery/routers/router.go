@@ -21,6 +21,7 @@ func SetupRouter(
 	restoreController *controllers.RestoreController,
 	reportController *controllers.ReportController,
 	exportController *controllers.ExportController,
+	syncController *controllers.SyncController,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -144,6 +145,14 @@ func SetupRouter(
 
 			// Download Route (Protected)
 			protected.GET("/download/:filename", exportController.DownloadExport)
+
+			// Sync Routes (Offline-first data synchronization)
+			syncGroup := protected.Group("/sync")
+			{
+				syncGroup.POST("/batch", syncController.SyncBatch)
+				syncGroup.GET("/status", syncController.GetSyncStatus)
+				syncGroup.GET("/history", syncController.GetSyncHistory)
+			}
 
 			log.Println("=== ROUTES SAVED ===")
 			for _, route := range r.Routes() {

@@ -62,6 +62,7 @@ func main() {
 	transactionRepo := repositories.NewTransactionRepository(db)
 	reportRepo := repositories.NewReportRepository(db)
 	exportRepo := repositories.NewExportRepository(db)
+	syncRepo := repositories.NewSyncRepository(db)
 
 	// Services
 	pwdService := infrastructure.NewPasswordService()
@@ -79,6 +80,7 @@ func main() {
 	restoreUC := usecases.NewRestoreUseCases(salesRepo, expenseRepo, inventoryRepo)
 	reportUC := usecases.NewReportUsecases(reportRepo, businessRepo)
 	exportUC := usecases.NewExportUsecases(exportRepo, exportService, salesRepo, inventoryRepo, expenseRepo, transactionRepo)
+	syncUsecase := usecases.NewSyncUseCases(syncRepo)
 
 	// Controllers
 	authController := controllers.NewAuthController(userUC)
@@ -92,6 +94,7 @@ func main() {
 	restoreController := controllers.NewRestoreController(restoreUC, businessUC)
 	reportController := controllers.NewReportController(reportUC, businessUC)
 	exportController := controllers.NewExportController(exportUC, businessUC)
+	syncController := controllers.NewSyncController(syncUsecase, businessUC)
 
 	// Router
 	r := routers.SetupRouter(
@@ -107,6 +110,7 @@ func main() {
 		restoreController,
 		reportController,
 		exportController,
+		syncController,
 	)
 
 	port := os.Getenv("PORT")
