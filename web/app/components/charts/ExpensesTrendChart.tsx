@@ -1,0 +1,81 @@
+import React from "react";
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
+
+const trendData = [
+    { name: "Jan 24", value: 45000 },
+    { name: "Jan 26", value: 3000 },
+    { name: "Jan 28", value: 15000 },
+    { name: "Jan 30", value: 4000 },
+    { name: "Feb 1", value: 6000 },
+    { name: "Feb 3", value: 4500 },
+    { name: "Feb 5", value: 18000 },
+    { name: "Feb 7", value: 46000 },
+    { name: "Feb 9", value: 16000 },
+];
+
+const ExpensesTrendChart = ({ className = "" }: { className?: string }) => {
+    return (
+        <div
+            className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
+        >
+            <div>
+                <h3 className="font-semibold text-slate-900">Daily Trend</h3>
+                <p className="text-sm text-slate-500">Expenses over time</p>
+            </div>
+
+            <div className="mt-6 h-56 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="#e2e8f0"
+                        />
+                        <XAxis
+                            dataKey="name"
+                            stroke="#94a3b8"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                        />
+                        <YAxis
+                            stroke="#94a3b8"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => value.toLocaleString()}
+                        />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: "#fff",
+                                borderRadius: "8px",
+                                border: "1px solid #e2e8f0",
+                                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                            }}
+                            itemStyle={{ color: "#1e293b", fontSize: "12px" }}
+                            labelStyle={{ color: "#64748b", marginBottom: "0.5rem" }}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#14b8a6"
+                            strokeWidth={2}
+                            fill="#ccfbf1"
+                            activeDot={{ r: 5, fill: "#14b8a6" }}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+    );
+};
+
+export default ExpensesTrendChart;
