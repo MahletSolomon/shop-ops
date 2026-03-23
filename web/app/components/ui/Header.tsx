@@ -42,6 +42,7 @@ const initialNotifications: NotificationItem[] = [
 ];
 
 export default function Header() {
+  const [user, setUser] = useState<{name: string, phone: string} | null>(null);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
   const notificationPopoverRef = useRef<HTMLDivElement>(null);
@@ -62,6 +63,21 @@ export default function Header() {
   const handleMarkAllAsRead = () => {
     setNotifications((prev) => prev.map((notification) => ({ ...notification, unread: false })));
   };
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser({
+          name: parsedUser.name || "Unknown User",
+          phone: parsedUser.phone || "",
+        });
+      } catch (e) {
+        console.error("Failed to parse user data from localStorage", e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!isNotificationsOpen) return;
@@ -197,11 +213,11 @@ export default function Header() {
         {/* profile */}
         <Link href="/dashboard/profile" className="flex items-center gap-2 ml-1">
           <div className="h-9 w-9 rounded-full bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 font-bold text-xs shadow-sm hover:ring-2 hover:ring-indigo-100 transition-all">
-            AT
+            {user ? user.name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase() : "NA"}
           </div>
           <div className="hidden lg:flex flex-col items-start">
-            <span className="text-sm font-medium text-slate-700">James</span>
-            <span className="text-[10px] text-slate-500 uppercase tracking-wide">Manager</span>
+            <span className="text-sm font-medium text-slate-700">{user ? user.name.split(" ")[0] : "Admin"}</span>
+            <span className="text-[10px] text-slate-500 uppercase tracking-wide">{user ? user.phone : "Manager"}</span>
           </div>
         </Link>
       </div>

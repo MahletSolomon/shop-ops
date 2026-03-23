@@ -1,8 +1,44 @@
 'use client'
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+    const router = useRouter();
+    const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        
+        try {
+            const res = await fetch("http://localhost:8080/api/v1/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phone, password }),
+            });
+            const data = await res.json();
+            
+            if (res.ok && data.token) {
+                document.cookie = `token=${data.token}; path=/; max-age=86400`;
+                document.cookie = `refresh_token=${data.refresh_token}; path=/; max-age=604800`;
+                localStorage.setItem("user", JSON.stringify(data.user));
+                router.push("/dashboard");
+            } else {
+                setError(data.message || "Login failed");
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="bg-white min-h-screen w-full flex items-center justify-center font-['Inter',sans-serif]">
             <div className="bg-[#f9fafb] flex-[1_1_50%] h-screen flex flex-col items-center justify-center relative p-8">
@@ -21,13 +57,17 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <form className="flex flex-col gap-[20px] items-start w-full" onSubmit={(e) => e.preventDefault()}>
+                    <form className="flex flex-col gap-[20px] items-start w-full" onSubmit={handleLogin}>
+                        {error && <div className="text-red-500 text-sm font-['Montserrat',sans-serif] w-full text-center bg-red-50 py-2 rounded-[8px]">{error}</div>}
                         <div className="flex flex-col gap-[10px] items-start w-full">
-                            <label className="font-['Montserrat',sans-serif] font-normal text-[#151515] text-[12px]">Email</label>
+                            <label className="font-['Montserrat',sans-serif] font-normal text-[#151515] text-[12px]">Phone Number</label>
                             <div className="bg-white h-[44px] relative rounded-[12px] w-full border border-[#e5e7eb] focus-within:border-[#135bec] transition-colors">
                                 <input
-                                    type="email"
-                                    placeholder="name@gmail.com"
+                                    type="tel"
+                                    placeholder="+251980633712"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    required
                                     className="w-full h-full px-[20px] py-[10px] rounded-[12px] bg-transparent outline-none font-['Montserrat',sans-serif] text-[14px] text-black placeholder:text-[#9ca3c1]"
                                 />
                             </div>
@@ -39,6 +79,9 @@ export default function LoginPage() {
                                 <input
                                     type="password"
                                     placeholder="Enter Your Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
                                     className="w-full h-full px-[20px] py-[10px] rounded-[12px] bg-transparent outline-none font-['Montserrat',sans-serif] text-[14px] text-black placeholder:text-[#9ca3c1]"
                                 />
                             </div>
@@ -56,8 +99,8 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex flex-col gap-[30px] items-start w-full mt-2">
-                            <button type="submit" className="bg-[#135bec] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full py-[11px] px-[16px] text-white font-medium text-[16px] leading-[20px] hover:bg-blue-700 transition-colors">
-                                Sign In
+                            <button type="submit" disabled={loading} className="bg-[#135bec] rounded-[8px] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] w-full py-[11px] px-[16px] text-white font-medium text-[16px] leading-[20px] hover:bg-blue-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed">
+                                {loading ? "Signing In..." : "Sign In"}
                             </button>
 
                             <div className="flex gap-[10px] items-center w-full">
