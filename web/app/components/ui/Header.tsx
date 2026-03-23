@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Bell,
 } from "lucide-react";
+import BusinessSwitcher from "./BusinessSwitcher";
 
 type NotificationItem = {
   id: number;
@@ -111,12 +112,7 @@ export default function Header() {
 
       {/* Store Selection */}
       <div className="flex items-center gap-4">
-        <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all group">
-          <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600">
-            Merkato Mini-Market
-          </span>
-          <ChevronDown size={16} className="text-slate-400 group-hover:text-indigo-600" />
-        </button>
+        <BusinessSwitcher />
 
         {/* online status  */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-600">
