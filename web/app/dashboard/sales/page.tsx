@@ -3,8 +3,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import PageTitle from "@/app/components/ui/PageTitle";
 import Card from "@/app/components/ui/Card";
-import SalesTable from "@/app/components/tables/SalesTable";
 import { DollarSign } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/app/components/ui/table";
 import {
   ApiSale,
   createSale,
@@ -17,7 +24,18 @@ import {
   voidSale,
 } from "@/lib/sales";
 import { ApiProduct, fetchProducts } from "@/lib/inventory";
-import type { SalesRow } from "@/app/components/tables/SalesTable";
+
+type SalesRow = {
+  id: string;
+  date: string;
+  time: string;
+  productId: string;
+  quantity: number;
+  unitPrice: string;
+  total: string;
+  note: string;
+  status: "Active" | "Voided";
+};
 
 type ActiveBusiness = {
   id: string;
@@ -42,6 +60,19 @@ const formatDateForApi = (date: Date) => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+};
+
+const formatDateForDisplay = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  if (!year || !month || !day) {
+    return date;
+  }
+
+  return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 };
 
 const getDateRangeParams = (timeRange: string) => {
@@ -280,6 +311,17 @@ const SalesPage = () => {
 
   const shownTotalCount = search.trim() ? filteredRows.length : totalCount;
   const averageSale = rangeCount > 0 ? rangeRevenue / rangeCount : 0;
+  const totalPages = Math.max(1, Math.ceil(shownTotalCount / pageSize));
+  const startIndex = shownTotalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endIndex = shownTotalCount === 0 ? 0 : Math.min(startIndex + filteredRows.length - 1, shownTotalCount);
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
 
   const openCreateModal = () => {
     setActionError("");
@@ -535,17 +577,119 @@ const SalesPage = () => {
         )}
       </div>
 
-      <SalesTable
-        rows={filteredRows}
-        totalCount={shownTotalCount}
-        pageSize={pageSize}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-        isLoading={isLoadingList}
-        onView={handleView}
-        onEdit={openEditModal}
-        onVoid={handleVoid}
-      />
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <Table>
+          <TableHeader className="bg-slate-50 text-xs uppercase tracking-wide">
+            <TableRow className="border-slate-200 hover:bg-transparent">
+              <TableHead className="px-5 py-3">Date &amp; Time</TableHead>
+              <TableHead className="px-5 py-3">Product ID</TableHead>
+              <TableHead className="px-5 py-3 text-right">Qty</TableHead>
+              <TableHead className="px-5 py-3 text-right">Unit Price</TableHead>
+              <TableHead className="px-5 py-3 text-right">Total</TableHead>
+              <TableHead className="px-5 py-3">Note</TableHead>
+              <TableHead className="px-5 py-3 text-right">Status</TableHead>
+              <TableHead className="px-5 py-3 text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoadingList ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={8} className="px-5 py-10 text-center text-slate-500">
+                  Loading sales...
+                </TableCell>
+              </TableRow>
+            ) : filteredRows.length > 0 ? (
+              filteredRows.map((row) => (
+                <TableRow key={row.id} className="border-slate-100">
+                  <TableCell className="px-5 py-4">
+                    <div className="font-medium text-slate-800">{formatDateForDisplay(row.date)}</div>
+                    <div className="text-xs text-slate-500">{row.time}</div>
+                  </TableCell>
+                  <TableCell className="px-5 py-4 font-mono text-xs text-slate-600">
+                    {row.productId}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-right font-medium text-slate-900">
+                    {row.quantity}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-right">{row.unitPrice}</TableCell>
+                  <TableCell className="px-5 py-4 text-right font-semibold text-slate-900">
+                    {row.total}
+                  </TableCell>
+                  <TableCell className="max-w-xs px-5 py-4 text-slate-600">{row.note}</TableCell>
+                  <TableCell className="px-5 py-4 text-right">
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                        row.status === "Voided"
+                          ? "bg-rose-100 text-rose-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="px-5 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleView(row)}
+                        className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                      >
+                        View
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(row)}
+                        disabled={row.status === "Voided"}
+                        className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleVoid(row)}
+                        disabled={row.status === "Voided"}
+                        className="rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Void
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={8} className="px-5 py-10 text-center text-slate-500">
+                  No sales found for the selected filters.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Showing {startIndex} to {endIndex} of {shownTotalCount} results
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1 || isLoadingList}
+              className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages || filteredRows.length === 0 || isLoadingList}
+              className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
 
       {isCreateOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

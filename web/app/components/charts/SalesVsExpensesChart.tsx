@@ -34,7 +34,7 @@ const SalesVsExpensesChart: React.FC<SalesVsExpensesChartProps> = ({
                     Sales vs Expenses
                 </h3>
                 <p className="text-sm text-slate-500">
-                    Daily financial performance for February
+                    Daily financial performance for the last 7 days
                 </p>
             </div>
 

@@ -7,8 +7,16 @@ import PageTitle from "../components/ui/PageTitle";
 import React, { useEffect, useMemo, useState } from "react";
 import StockAlertList from "../components/ui/StockAlertList";
 import { DollarSign, TrendingUp, Package, TriangleAlert } from "lucide-react";
-import { fetchSalesStats, fetchSalesSummary, formatSalesMoney } from "@/lib/sales";
-import { fetchExpenseSummary, formatMoney, toAmountNumber } from "@/lib/expenses";
+import {
+    fetchSales,
+    fetchSalesStats,
+    fetchSalesSummary,
+    formatSalesMoney,
+    toAmountNumber as toSalesNumber,
+} from "@/lib/sales";
+import { fetchExpenseSummary, fetchExpenses, formatMoney, toAmountNumber } from "@/lib/expenses";
+import { fetchLowStockProducts } from "@/lib/inventory";
+import type { StockItem } from "../components/ui/StockAlertList";
 
 type ActiveBusiness = {
     id: string;
@@ -47,6 +55,9 @@ export default function DashboardPage() {
         const [monthlySales, setMonthlySales] = useState(0);
         const [todayExpenses, setTodayExpenses] = useState(0);
         const [pendingSyncs, setPendingSyncs] = useState(0);
+    const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+    const [lowStockItems, setLowStockItems] = useState<StockItem[]>([]);
+    const [isLoadingLowStock, setIsLoadingLowStock] = useState(false);
 
         useEffect(() => {
                 const syncActiveBusiness = () => {
@@ -104,21 +115,108 @@ export default function DashboardPage() {
                 loadDashboardMetrics();
         }, [activeBusinessId]);
 
-        const chartData = useMemo<ChartDataPoint[]>(() => {
-                const baseSales = monthlySales > 0 ? monthlySales : 1;
-                const baseExpenses = todayExpenses > 0 ? todayExpenses : 1;
+            useEffect(() => {
+                const loadLowStock = async () => {
+                    if (!activeBusinessId) {
+                        setLowStockItems([]);
+                        return;
+                    }
 
-                return [
-                        { name: "Week 1", sales: baseSales * 0.15, expenses: baseExpenses * 4.2 },
-                        { name: "Week 2", sales: baseSales * 0.22, expenses: baseExpenses * 5.1 },
-                        { name: "Week 3", sales: baseSales * 0.28, expenses: baseExpenses * 5.8 },
-                        { name: "Week 4", sales: baseSales * 0.35, expenses: baseExpenses * 6.4 },
-                ].map((item) => ({
-                        ...item,
-                        sales: Number(item.sales.toFixed(2)),
-                        expenses: Number(item.expenses.toFixed(2)),
-                }));
-        }, [monthlySales, todayExpenses]);
+                    setIsLoadingLowStock(true);
+                    try {
+                        const products = await fetchLowStockProducts(activeBusinessId);
+                        const mapped: StockItem[] = products.map((product) => ({
+                            name: product.name,
+                            sku: `ID: ${product.id}`,
+                            quantity: `${product.stock_quantity} units`,
+                            status: product.stock_quantity <= 0 ? "Out of Stock" : "Low Stock",
+                            variant: product.stock_quantity <= 0 ? "critical" : "warning",
+                        }));
+                        setLowStockItems(mapped);
+                    } catch {
+                        setLowStockItems([]);
+                    } finally {
+                        setIsLoadingLowStock(false);
+                    }
+                };
+
+                loadLowStock();
+            }, [activeBusinessId]);
+
+            useEffect(() => {
+                const loadChartData = async () => {
+                    if (!activeBusinessId) {
+                        setChartData([]);
+                        return;
+                    }
+
+                    const today = new Date();
+                    const start = new Date(today);
+                    start.setDate(today.getDate() - 6);
+
+                    const startDate = formatDateForApi(start);
+                    const endDate = formatDateForApi(today);
+
+                    try {
+                        const [salesResponse, expensesResponse] = await Promise.all([
+                            fetchSales({
+                                businessId: activeBusinessId,
+                                page: 1,
+                                limit: 200,
+                                startDate,
+                                endDate,
+                                sort: "created_at",
+                                order: "asc",
+                            }),
+                            fetchExpenses({
+                                businessId: activeBusinessId,
+                                page: 1,
+                                limit: 200,
+                                startDate,
+                                endDate,
+                                sort: "date",
+                                order: "asc",
+                            }),
+                        ]);
+
+                        const salesByDate = new Map<string, number>();
+                        for (const sale of salesResponse.sales) {
+                            const dateKey = new Date(sale.created_at).toISOString().slice(0, 10);
+                            const current = salesByDate.get(dateKey) ?? 0;
+                            salesByDate.set(dateKey, current + toSalesNumber(sale.total));
+                        }
+
+                        const expensesByDate = new Map<string, number>();
+                        for (const expense of expensesResponse.data) {
+                            const dateKey = new Date(expense.created_at).toISOString().slice(0, 10);
+                            const current = expensesByDate.get(dateKey) ?? 0;
+                            expensesByDate.set(dateKey, current + toAmountNumber(expense.amount));
+                        }
+
+                        const points: ChartDataPoint[] = [];
+                        for (let i = 0; i < 7; i += 1) {
+                            const date = new Date(start);
+                            date.setDate(start.getDate() + i);
+                            const key = formatDateForApi(date);
+
+                            points.push({
+                                name: date.toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                }),
+                                sales: Number((salesByDate.get(key) ?? 0).toFixed(2)),
+                                expenses: Number((expensesByDate.get(key) ?? 0).toFixed(2)),
+                            });
+                        }
+
+                        setChartData(points);
+                    } catch {
+                        setChartData([]);
+                    }
+                };
+
+                loadChartData();
+            }, [activeBusinessId]);
 
     return (
         <div className="flex flex-col space-y-4">
@@ -181,10 +279,14 @@ export default function DashboardPage() {
                             <TriangleAlert className="h-4 w-4 text-amber-500" />
                             Low Stock Alerts
                         </h3>
-                        <p className="text-sm text-slate-500">5 items require attention</p>
+                        <p className="text-sm text-slate-500">{lowStockItems.length} items require attention</p>
                     </div>
                     <div className="p-6 pt-0">
-                        <StockAlertList />
+                        <StockAlertList
+                            items={lowStockItems}
+                            isLoading={isLoadingLowStock}
+                            emptyMessage="No low stock alerts right now."
+                        />
                     </div>
                 </div>
             </div>
