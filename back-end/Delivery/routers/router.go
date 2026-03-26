@@ -29,14 +29,14 @@ func SetupRouter(
 	r.Use(infrastructure.RequestLogger(logger))
 	r.Use(gin.Recovery())
 
-	// CORS configuration
+	// CORS - allow all origins so any frontend can call this API
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3001", "http://localhost:5173"},
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization"}, // Updated AllowHeaders
+		ExposeHeaders:    []string{"Content-Length", "Content-Disposition"},
+		AllowCredentials: false,
+		MaxAge:           12 * time.Hour, // Added MaxAge
 	}))
 
 	// Health check (public, sans version)
