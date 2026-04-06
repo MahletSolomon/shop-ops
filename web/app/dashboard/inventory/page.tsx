@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import PageTitle from "@/app/components/ui/PageTitle";
 import Card from "@/app/components/ui/Card";
 import { AlertTriangle, PackageX, TrendingUp } from "lucide-react";
@@ -83,6 +84,8 @@ const toTableProduct = (product: ApiProduct): Product => {
 };
 
 const Inventory = () => {
+  const t = useTranslations("inventory");
+  const tCommon = useTranslations("common");
   const { showTour, completeTour, skipTour } = useTour("inventory");
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -392,8 +395,8 @@ const Inventory = () => {
   return (
     <div className="flex flex-col space-y-4">
       <PageTitle
-        title="Inventory"
-        subtitle="Manage your product stock levels"
+        title={t("title")}
+        subtitle={t("subtitle")}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">

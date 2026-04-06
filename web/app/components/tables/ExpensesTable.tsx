@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type ExpenseRow = {
   id: string | number;
@@ -57,6 +58,8 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
   onEdit,
   onVoid,
 }) => {
+  const t = useTranslations("expenses");
+  const tCommon = useTranslations("common");
   const [localPage, setLocalPage] = useState(1);
   const isServerPagination =
     typeof onPageChange === "function" && typeof controlledPage === "number";
@@ -115,12 +118,12 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
         <table className="w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr className="border-b border-slate-200">
-              <th className="px-5 py-3">Date &amp; Time</th>
-              <th className="px-5 py-3">Category</th>
-              <th className="px-5 py-3">Description</th>
-              <th className="px-5 py-3 text-right">Amount</th>
-              <th className="px-5 py-3 text-right">Status</th>
-              <th className="px-5 py-3 text-right">Actions</th>
+              <th className="px-5 py-3">{t("dateAndTime")}</th>
+              <th className="px-5 py-3">{t("category")}</th>
+              <th className="px-5 py-3">{t("description")}</th>
+              <th className="px-5 py-3 text-right">{t("amount")}</th>
+              <th className="px-5 py-3 text-right">{tCommon("status")}</th>
+              <th className="px-5 py-3 text-right">{tCommon("actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -130,7 +133,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                   colSpan={6}
                   className="px-5 py-10 text-center text-slate-500"
                 >
-                  Loading expenses...
+                  {t("loadingExpenses")}
                 </td>
               </tr>
             ) : pageRows.length > 0 ? (
@@ -178,7 +181,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                         className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={!onEdit}
                       >
-                        Edit
+                        {tCommon("edit")}
                       </button>
                       <button
                         type="button"
@@ -186,7 +189,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                         className="rounded-full border border-rose-200 px-3 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={!onVoid}
                       >
-                        Void
+                        {t("void")}
                       </button>
                     </div>
                   </td>
@@ -198,7 +201,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
                   colSpan={6}
                   className="px-5 py-10 text-center text-slate-500"
                 >
-                  No results found for the selected filters.
+                  {tCommon("noResults")}
                 </td>
               </tr>
             )}
@@ -208,7 +211,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
 
       <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
         <span>
-          Showing {startIndex} to {endIndex} of {totalCount} results
+          {t("showing")} {startIndex} {t("to")} {endIndex} {t("of")} {totalCount} {t("results")}
         </span>
         <div className="flex gap-2">
           <button
@@ -217,7 +220,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
             disabled={page === 1 || isLoading}
             className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Previous
+            {tCommon("previous")}
           </button>
           <button
             type="button"
@@ -225,7 +228,7 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
             disabled={page === totalPages || rows.length === 0 || isLoading}
             className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Next
+            {tCommon("next")}
           </button>
         </div>
       </div>

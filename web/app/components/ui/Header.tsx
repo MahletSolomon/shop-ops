@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Bell,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import BusinessSwitcher from "./BusinessSwitcher";
 
 type NotificationItem = {
@@ -43,6 +44,10 @@ const initialNotifications: NotificationItem[] = [
 ];
 
 export default function Header() {
+  const t = useTranslations("header");
+  const tCommon = useTranslations("common");
+  const tNotifications = useTranslations("notifications");
+  const tDate = useTranslations("date");
   const [user, setUser] = useState<{name: string, phone: string} | null>(null);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>(initialNotifications);
@@ -119,7 +124,7 @@ export default function Header() {
         {/* online status  */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-medium text-emerald-600">
           <Wifi size={12} />
-          <span>Online</span>
+          <span>{t("online")}</span>
         </div>
       </div>
 
@@ -129,7 +134,7 @@ export default function Header() {
         {/* date */}
         <div className="hidden md:flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">
           <CalendarDays size={16} className="text-slate-400" />
-          <span>Fri, Feb 20 2026</span>
+          <span>{tDate("format")}</span>
         </div>
 
         <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
@@ -156,7 +161,7 @@ export default function Header() {
           {isNotificationsOpen && (
             <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm rounded-xl border border-slate-200 bg-white shadow-lg z-30">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <h3 className="text-sm font-semibold text-slate-800">Notifications</h3>
+                <h3 className="text-sm font-semibold text-slate-800">{tNotifications("title")}</h3>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button
@@ -164,10 +169,10 @@ export default function Header() {
                       onClick={handleMarkAllAsRead}
                       className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
                     >
-                      Mark all as read
+                      {tCommon("markAllAsRead")}
                     </button>
                   )}
-                  <span className="text-xs text-slate-500">{unreadCount} unread</span>
+                  <span className="text-xs text-slate-500">{tNotifications("unreadCount", { count: unreadCount })}</span>
                 </div>
               </div>
 
@@ -191,7 +196,7 @@ export default function Header() {
                               onClick={() => handleMarkAsRead(notification.id)}
                               className="shrink-0 text-[11px] font-medium text-indigo-600 hover:text-indigo-700"
                             >
-                              Mark as read
+                              {tCommon("markAsRead")}
                             </button>
                           )}
                         </div>

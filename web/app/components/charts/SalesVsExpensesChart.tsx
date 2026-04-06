@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import {
     LineChart,
     Line,
@@ -25,16 +28,18 @@ const SalesVsExpensesChart: React.FC<SalesVsExpensesChartProps> = ({
     data,
     className,
 }) => {
+    const t = useTranslations("charts");
+    
     return (
         <div
             className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}
         >
             <div className="p-6 flex flex-col space-y-1.5">
                 <h3 className="font-semibold leading-none tracking-tight">
-                    Sales vs Expenses
+                    {t("salesVsExpenses")}
                 </h3>
                 <p className="text-sm text-slate-500">
-                    Daily financial performance for the last 7 days
+                    {t("salesVsExpensesDesc")}
                 </p>
             </div>
 
@@ -81,7 +86,7 @@ const SalesVsExpensesChart: React.FC<SalesVsExpensesChartProps> = ({
                             <Line
                                 type="monotone"
                                 dataKey="sales"
-                                name="Sales"
+                                name={t("sales")}
                                 stroke="#4f46e5" // Indigo-600
                                 strokeWidth={2}
                                 dot={false}
@@ -90,7 +95,7 @@ const SalesVsExpensesChart: React.FC<SalesVsExpensesChartProps> = ({
                             <Line
                                 type="monotone"
                                 dataKey="expenses"
-                                name="Expenses"
+                                name={t("expenses")}
                                 stroke="#ef4444" // Red-500
                                 strokeWidth={2}
                                 dot={false}

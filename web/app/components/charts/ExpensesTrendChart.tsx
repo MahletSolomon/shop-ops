@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -18,15 +21,16 @@ const ExpensesTrendChart = ({
   className?: string;
   data: TrendDatum[];
 }) => {
-  const trendData = data.length > 0 ? data : [{ name: "No Data", value: 0 }];
+  const t = useTranslations("charts");
+  const trendData = data.length > 0 ? data : [{ name: t("noData"), value: 0 }];
 
   return (
     <div
       className={`rounded-xl border border-slate-200 bg-white p-6 shadow-sm ${className}`}
     >
       <div>
-        <h3 className="font-semibold text-slate-900">Daily Trend</h3>
-        <p className="text-sm text-slate-500">Expenses over time</p>
+        <h3 className="font-semibold text-slate-900">{t("dailyTrend")}</h3>
+        <p className="text-sm text-slate-500">{t("expensesOverTime")}</p>
       </div>
 
       <div className="mt-6 h-56 w-full">

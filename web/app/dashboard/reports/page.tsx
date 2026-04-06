@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Area,
   AreaChart,
@@ -69,13 +70,13 @@ type ReportTab =
 
 type BuilderReportType = "sales" | "expenses" | "profit" | "inventory";
 
-const TAB_OPTIONS: Array<{ id: ReportTab; label: string }> = [
-  { id: "overview", label: "Overview" },
-  { id: "profit", label: "Profit Analysis" },
-  { id: "builder", label: "Reports Builder" },
-  { id: "transactions", label: "Transactions Explorer" },
-  { id: "exports", label: "Exports" },
-  { id: "sync_restore", label: "Sync & Restore" },
+const TAB_OPTIONS: Array<{ id: ReportTab; labelKey: string }> = [
+  { id: "overview", labelKey: "overview" },
+  { id: "profit", labelKey: "profitAnalysis" },
+  { id: "builder", labelKey: "reportsBuilder" },
+  { id: "transactions", labelKey: "transactionsExplorer" },
+  { id: "exports", labelKey: "exports" },
+  { id: "sync_restore", labelKey: "syncAndRestore" },
 ];
 
 const formatDateForApi = (date: Date) => {
@@ -116,6 +117,8 @@ const toShortDate = (value: string) => {
 };
 
 const ReportsPage = () => {
+  const t = useTranslations("reports");
+  const tCommon = useTranslations("common");
   const today = useMemo(() => new Date(), []);
   const firstDayOfMonth = useMemo(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
@@ -630,43 +633,43 @@ const ReportsPage = () => {
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card
-            title="Sales Revenue"
-            value={isLoadingOverview ? "Loading..." : formatReportMoney(salesReport?.total_sales ?? 0)}
+            title={t("salesRevenue")}
+            value={isLoadingOverview ? t("loading") : formatReportMoney(salesReport?.total_sales ?? 0)}
             icon={BarChart3}
             iconWrapperClass="bg-indigo-50 text-indigo-600"
             trend=""
-            description="In selected date range"
+            description={t("inSelectedDateRange")}
           />
           <Card
-            title="Expenses"
-            value={isLoadingOverview ? "Loading..." : formatReportMoney(expenseReport?.total_expenses ?? 0)}
+            title={tCommon("expenses")}
+            value={isLoadingOverview ? t("loading") : formatReportMoney(expenseReport?.total_expenses ?? 0)}
             icon={ArrowDownToLine}
             iconWrapperClass="bg-rose-50 text-rose-600"
             trend=""
-            description="In selected date range"
+            description={t("inSelectedDateRange")}
           />
           <Card
-            title="Net Profit"
-            value={isLoadingOverview ? "Loading..." : formatReportMoney(profitReport?.profit ?? 0)}
+            title={t("netProfit")}
+            value={isLoadingOverview ? t("loading") : formatReportMoney(profitReport?.profit ?? 0)}
             icon={TrendingUp}
             iconWrapperClass="bg-emerald-50 text-emerald-600"
             trend=""
-            description="Sales - Expenses"
+            description={t("salesMinusExpenses")}
           />
           <Card
-            title="Low Stock Products"
+            title={t("lowStockProducts")}
             value={String(inventoryReport?.low_stock_products?.length ?? 0)}
             icon={AlertTriangle}
             iconWrapperClass="bg-amber-50 text-amber-600"
             trend=""
-            description="Requires attention"
+            description={t("requiresAttention")}
           />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700">Top Product Orders</h3>
-            <p className="text-xs text-slate-500">Most sold products in the selected period</p>
+            <h3 className="text-sm font-semibold text-slate-700">{t("topProductOrders")}</h3>
+            <p className="text-xs text-slate-500">{t("mostSoldProducts")}</p>
             <div className="mt-4 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topProductsChart}>
@@ -681,8 +684,8 @@ const ReportsPage = () => {
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-slate-700">Expense Category Mix</h3>
-            <p className="text-xs text-slate-500">Transaction distribution by category</p>
+            <h3 className="text-sm font-semibold text-slate-700">{t("expenseCategoryMix")}</h3>
+            <p className="text-xs text-slate-500">{t("transactionDistribution")}</p>
             <div className="mt-4 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -711,38 +714,38 @@ const ReportsPage = () => {
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-3">
           <Card
-            title="Current Net Profit"
-            value={isLoadingProfit ? "Loading..." : formatReportMoney(profitSummary?.net_profit ?? 0)}
+            title={t("currentNetProfit")}
+            value={isLoadingProfit ? t("loading") : formatReportMoney(profitSummary?.net_profit ?? 0)}
             icon={TrendingUp}
             iconWrapperClass="bg-emerald-50 text-emerald-600"
             trend=""
-            description="For selected range"
+            description={t("forSelectedRange")}
           />
           <Card
-            title="Previous Net Profit"
+            title={t("previousNetProfit")}
             value={
               isLoadingProfit
-                ? "Loading..."
+                ? t("loading")
                 : formatReportMoney(profitComparison?.previous?.net_profit ?? 0)
             }
             icon={BarChart3}
             iconWrapperClass="bg-slate-100 text-slate-600"
             trend=""
-            description="Comparison window"
+            description={t("comparisonWindow")}
           />
           <Card
-            title="Profit Change"
+            title={t("profitChange")}
             value={`${Number(profitComparison?.change_pct ?? 0).toFixed(2)}%`}
             icon={TrendingUp}
             iconWrapperClass="bg-indigo-50 text-indigo-600"
             trend=""
-            description="Current vs previous"
+            description={t("currentVsPrevious")}
           />
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-700">Profit Trend</h3>
-          <p className="text-xs text-slate-500">Sales, expenses, and net profit over time</p>
+          <h3 className="text-sm font-semibold text-slate-700">{t("profitTrend")}</h3>
+          <p className="text-xs text-slate-500">{t("salesExpensesNetProfit")}</p>
           <div className="mt-4 h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={profitTrendChart}>
@@ -769,34 +772,34 @@ const ReportsPage = () => {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
           <div className="grid gap-3 sm:grid-cols-4">
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">Report Type</span>
+              <span className="text-xs font-medium text-slate-500">{t("reportType")}</span>
               <select
                 value={builderType}
                 onChange={(event) => setBuilderType(event.target.value as BuilderReportType)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="sales">Sales Report</option>
-                <option value="expenses">Expense Report</option>
-                <option value="profit">Profit Report</option>
-                <option value="inventory">Inventory Report</option>
+                <option value="sales">{t("salesReport")}</option>
+                <option value="expenses">{t("expenseReport")}</option>
+                <option value="profit">{t("profitReport")}</option>
+                <option value="inventory">{t("inventoryReport")}</option>
               </select>
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">Group By</span>
+              <span className="text-xs font-medium text-slate-500">{t("groupBy")}</span>
               <select
                 value={groupBy}
                 onChange={(event) => setGroupBy(event.target.value as ReportGroupBy)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="day">Day</option>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
+                <option value="day">{t("day")}</option>
+                <option value="week">{t("week")}</option>
+                <option value="month">{t("month")}</option>
               </select>
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">Start Date</span>
+              <span className="text-xs font-medium text-slate-500">{t("startDate")}</span>
               <input
                 type="date"
                 value={startDate}
@@ -806,7 +809,7 @@ const ReportsPage = () => {
             </label>
 
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">End Date</span>
+              <span className="text-xs font-medium text-slate-500">{t("endDate")}</span>
               <input
                 type="date"
                 value={endDate}
@@ -823,13 +826,13 @@ const ReportsPage = () => {
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FileOutput size={14} />
-            {isLoadingBuilder ? "Generating..." : "Generate Preview"}
+            {isLoadingBuilder ? t("generating") : t("generatePreview")}
           </button>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-700">Preview</h3>
-          <p className="text-xs text-slate-500">Rendered data from selected report endpoint</p>
+          <h3 className="text-sm font-semibold text-slate-700">{t("preview")}</h3>
+          <p className="text-xs text-slate-500">{t("renderedDataFromEndpoint")}</p>
 
           {builderType !== "inventory" && grouped.length > 0 ? (
             <div className="mt-4 h-80">
@@ -859,8 +862,8 @@ const ReportsPage = () => {
               <table className="w-full text-left text-sm text-slate-700">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-3 py-2">Field</th>
-                    <th className="px-3 py-2">Value</th>
+                    <th className="px-3 py-2">{t("field")}</th>
+                    <th className="px-3 py-2">{t("value")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -878,7 +881,7 @@ const ReportsPage = () => {
                     : (
                       <tr>
                         <td className="px-3 py-6 text-slate-500" colSpan={2}>
-                          No preview data yet. Generate a report preview.
+                          {t("noPreviewDataYet")}
                         </td>
                       </tr>
                     )}
@@ -897,7 +900,7 @@ const ReportsPage = () => {
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="grid gap-3 sm:grid-cols-4">
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">Type</span>
+              <span className="text-xs font-medium text-slate-500">{t("type")}</span>
               <select
                 value={transactionType}
                 onChange={(event) => {
@@ -906,21 +909,21 @@ const ReportsPage = () => {
                 }}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="all">All</option>
-                <option value="sale">Sales</option>
-                <option value="expense">Expenses</option>
+                <option value="all">{t("all")}</option>
+                <option value="sale">{t("sales")}</option>
+                <option value="expense">{tCommon("expenses")}</option>
               </select>
             </label>
 
             <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-500">Search</span>
+              <span className="text-xs font-medium text-slate-500">{t("search")}</span>
               <input
                 value={transactionSearch}
                 onChange={(event) => {
                   setTransactionSearch(event.target.value);
                   setTransactionPage(1);
                 }}
-                placeholder="Search note, category, product"
+                placeholder={t("searchNoteCategoryProduct")}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -932,7 +935,7 @@ const ReportsPage = () => {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
               >
                 <RefreshCcw size={14} />
-                Refresh
+                {t("refresh")}
               </button>
             </div>
           </div>
@@ -943,23 +946,23 @@ const ReportsPage = () => {
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Description</th>
-                  <th className="px-3 py-2">Amount</th>
+                  <th className="px-3 py-2">{t("date")}</th>
+                  <th className="px-3 py-2">{t("type")}</th>
+                  <th className="px-3 py-2">{t("description")}</th>
+                  <th className="px-3 py-2">{t("amount")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoadingTransactions ? (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={4}>
-                      Loading transactions...
+                      {t("loadingTransactions")}
                     </td>
                   </tr>
                 ) : transactions.length === 0 ? (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={4}>
-                      No transactions found.
+                      {t("noTransactionsFound")}
                     </td>
                   </tr>
                 ) : (
@@ -988,8 +991,8 @@ const ReportsPage = () => {
 
           <div className="flex items-center justify-between border-t border-slate-100 px-3 py-3 text-xs text-slate-500">
             <span>
-              Page {transactionPagination.current_page} of {transactionPagination.total_pages} •
-              Total {transactionPagination.total_records}
+              {t("page")} {transactionPagination.current_page} {t("of")} {transactionPagination.total_pages} •
+              {t("total")} {transactionPagination.total_records}
             </span>
             <div className="flex gap-2">
               <button
@@ -998,7 +1001,7 @@ const ReportsPage = () => {
                 onClick={() => setTransactionPage((prev) => Math.max(1, prev - 1))}
                 className="rounded border border-slate-200 px-2 py-1 disabled:opacity-50"
               >
-                Prev
+                {t("prev")}
               </button>
               <button
                 type="button"
@@ -1008,7 +1011,7 @@ const ReportsPage = () => {
                 }
                 className="rounded border border-slate-200 px-2 py-1 disabled:opacity-50"
               >
-                Next
+                {tCommon("next")}
               </button>
             </div>
           </div>
@@ -1021,26 +1024,26 @@ const ReportsPage = () => {
     return (
       <div className="space-y-4">
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700">Create Export</h3>
+          <h3 className="text-sm font-semibold text-slate-700">{t("createExport")}</h3>
 
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-500">Type</span>
+              <span className="text-xs font-medium text-slate-500">{t("type")}</span>
               <select
                 value={exportType}
                 onChange={(event) => setExportType(event.target.value as ExportType)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <option value="sales">Sales</option>
-                <option value="expenses">Expenses</option>
-                <option value="transactions">Transactions</option>
-                <option value="inventory">Inventory</option>
-                <option value="profit">Profit</option>
+                <option value="sales">{t("sales")}</option>
+                <option value="expenses">{tCommon("expenses")}</option>
+                <option value="transactions">{t("transactions")}</option>
+                <option value="inventory">{t("inventory")}</option>
+                <option value="profit">{t("profit")}</option>
               </select>
             </label>
 
             <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-500">Fields (comma separated)</span>
+              <span className="text-xs font-medium text-slate-500">{t("fieldsCommaSeparated")}</span>
               <input
                 value={exportFields}
                 onChange={(event) => setExportFields(event.target.value)}
@@ -1056,20 +1059,20 @@ const ReportsPage = () => {
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <FileOutput size={14} />
-            {isSubmittingExport ? "Submitting..." : "Request Export"}
+            {isSubmittingExport ? t("submitting") : t("requestExport")}
           </button>
         </div>
 
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-slate-700">Export History</h3>
+            <h3 className="text-sm font-semibold text-slate-700">{t("exportHistory")}</h3>
             <button
               type="button"
               onClick={() => loadExportHistory()}
               className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
             >
               <RefreshCcw size={13} />
-              Refresh
+              {t("refresh")}
             </button>
           </div>
 
@@ -1077,17 +1080,17 @@ const ReportsPage = () => {
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2">Created</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Actions</th>
+                  <th className="px-3 py-2">{t("created")}</th>
+                  <th className="px-3 py-2">{t("type")}</th>
+                  <th className="px-3 py-2">{tCommon("status")}</th>
+                  <th className="px-3 py-2">{t("actions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoadingExports ? (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={4}>
-                      Loading export history...
+                      {t("loadingExportHistory")}
                     </td>
                   </tr>
                 ) : exportHistory?.data?.length ? (
@@ -1116,7 +1119,7 @@ const ReportsPage = () => {
                             className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
                           >
                             <Download size={13} />
-                            Download
+                            {t("download")}
                           </button>
                         ) : (
                           <span className="text-xs text-slate-500">-</span>
@@ -1127,7 +1130,7 @@ const ReportsPage = () => {
                 ) : (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={4}>
-                      No export requests yet.
+                      {t("noExportRequestsYet")}
                     </td>
                   </tr>
                 )}
@@ -1146,9 +1149,9 @@ const ReportsPage = () => {
       <div className="space-y-4">
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700">Sync Status</h3>
+            <h3 className="text-sm font-semibold text-slate-700">{t("syncStatus")}</h3>
             <label className="space-y-1 block">
-              <span className="text-xs font-medium text-slate-500">Device ID</span>
+              <span className="text-xs font-medium text-slate-500">{t("deviceId")}</span>
               <input
                 value={syncDeviceId}
                 onChange={(event) => setSyncDeviceId(event.target.value)}
@@ -1156,10 +1159,10 @@ const ReportsPage = () => {
               />
             </label>
             <div className="text-xs text-slate-600 space-y-1">
-              <p>Last Sync ID: {syncStatus?.last_sync_id || "-"}</p>
-              <p>Last Status: {syncStatus?.last_status || "-"}</p>
-              <p>Pending Retries: {syncStatus?.pending_retries ?? 0}</p>
-              <p>Total Synced: {syncStatus?.total_synced ?? 0}</p>
+              <p>{t("lastSyncId")}: {syncStatus?.last_sync_id || "-"}</p>
+              <p>{t("lastStatus")}: {syncStatus?.last_status || "-"}</p>
+              <p>{t("pendingRetries")}: {syncStatus?.pending_retries ?? 0}</p>
+              <p>{t("totalSynced")}: {syncStatus?.total_synced ?? 0}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
@@ -1168,7 +1171,7 @@ const ReportsPage = () => {
                 className="inline-flex items-center gap-1 rounded border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
               >
                 <RefreshCcw size={13} />
-                Refresh Status
+                {t("refreshStatus")}
               </button>
               <button
                 type="button"
@@ -1177,13 +1180,13 @@ const ReportsPage = () => {
                 className="inline-flex items-center gap-1 rounded bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Database size={13} />
-                {isSubmittingSync ? "Submitting..." : "Submit Test Sync"}
+                {isSubmittingSync ? t("submitting") : t("submitTestSync")}
               </button>
             </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
-            <h3 className="text-sm font-semibold text-slate-700">Restore Data</h3>
+            <h3 className="text-sm font-semibold text-slate-700">{t("restoreData")}</h3>
             <div className="flex flex-wrap gap-2 text-xs">
               {(["sales", "expenses", "products"] as RestoreInclude[]).map((item) => {
                 const active = restoreInclude.includes(item);
@@ -1212,7 +1215,7 @@ const ReportsPage = () => {
             </div>
 
             <label className="space-y-1 block">
-              <span className="text-xs font-medium text-slate-500">Incremental Since (RFC3339)</span>
+              <span className="text-xs font-medium text-slate-500">{t("incrementalSince")}</span>
               <input
                 value={restoreSince}
                 onChange={(event) => setRestoreSince(event.target.value)}
@@ -1228,7 +1231,7 @@ const ReportsPage = () => {
                 disabled={isRunningRestore}
                 className="rounded border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
               >
-                Full Restore
+                {t("fullRestore")}
               </button>
               <button
                 type="button"
@@ -1236,7 +1239,7 @@ const ReportsPage = () => {
                 disabled={isRunningRestore}
                 className="rounded bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
               >
-                Incremental Restore
+                {t("incrementalRestore")}
               </button>
             </div>
 
@@ -1250,22 +1253,22 @@ const ReportsPage = () => {
 
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-slate-700">Sync History</h3>
+            <h3 className="text-sm font-semibold text-slate-700">{t("syncHistory")}</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2">Timestamp</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Summary</th>
+                  <th className="px-3 py-2">{t("timestamp")}</th>
+                  <th className="px-3 py-2">{tCommon("status")}</th>
+                  <th className="px-3 py-2">{t("summary")}</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoadingSync ? (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={3}>
-                      Loading sync history...
+                      {t("loadingSyncHistory")}
                     </td>
                   </tr>
                 ) : historyRows.length > 0 ? (
@@ -1274,7 +1277,7 @@ const ReportsPage = () => {
                       <td className="px-3 py-2">{toShortDate(item.sync_timestamp)}</td>
                       <td className="px-3 py-2">{item.status}</td>
                       <td className="px-3 py-2">
-                        Total {item.summary?.total ?? 0}, Success {item.summary?.success ?? 0}, Failed{" "}
+                        {t("total")} {item.summary?.total ?? 0}, {t("success")} {item.summary?.success ?? 0}, {t("failed")}{" "}
                         {item.summary?.failed ?? 0}
                       </td>
                     </tr>
@@ -1282,7 +1285,7 @@ const ReportsPage = () => {
                 ) : (
                   <tr>
                     <td className="px-3 py-6 text-slate-500" colSpan={3}>
-                      No sync history available.
+                      {t("noSyncHistoryAvailable")}
                     </td>
                   </tr>
                 )}
@@ -1297,19 +1300,19 @@ const ReportsPage = () => {
   return (
     <div className="flex flex-col space-y-4">
       <PageTitle
-        title="Reports"
-        subtitle="Unified reporting, exports, transaction analytics, and sync operations"
+        title={t("title")}
+        subtitle={t("subtitleFull")}
       />
 
       {!activeBusinessId && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Select an active business to load reporting data.
+          {t("selectBusinessToLoad")}
         </div>
       )}
 
       {isDateInvalid && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          Start date must be before or equal to end date.
+          {t("startDateBeforeEndDate")}
         </div>
       )}
 
@@ -1328,7 +1331,7 @@ const ReportsPage = () => {
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="space-y-1 sm:col-span-1">
-            <span className="text-xs font-medium text-slate-500">Start Date</span>
+            <span className="text-xs font-medium text-slate-500">{t("startDate")}</span>
             <input
               type="date"
               value={startDate}
@@ -1337,7 +1340,7 @@ const ReportsPage = () => {
             />
           </label>
           <label className="space-y-1 sm:col-span-1">
-            <span className="text-xs font-medium text-slate-500">End Date</span>
+            <span className="text-xs font-medium text-slate-500">{t("endDate")}</span>
             <input
               type="date"
               value={endDate}
@@ -1346,27 +1349,27 @@ const ReportsPage = () => {
             />
           </label>
           <label className="space-y-1 sm:col-span-1">
-            <span className="text-xs font-medium text-slate-500">Group By</span>
+            <span className="text-xs font-medium text-slate-500">{t("groupBy")}</span>
             <select
               value={groupBy}
               onChange={(event) => setGroupBy(event.target.value as ReportGroupBy)}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
             >
-              <option value="day">Day</option>
-              <option value="week">Week</option>
-              <option value="month">Month</option>
+              <option value="day">{t("day")}</option>
+              <option value="week">{t("week")}</option>
+              <option value="month">{t("month")}</option>
             </select>
           </label>
           <label className="space-y-1 sm:col-span-1">
-            <span className="text-xs font-medium text-slate-500">Profit Period</span>
+            <span className="text-xs font-medium text-slate-500">{t("profitPeriod")}</span>
             <select
               value={profitPeriod}
               onChange={(event) => setProfitPeriod(event.target.value as ProfitPeriod)}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
             >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
+              <option value="daily">{t("daily")}</option>
+              <option value="weekly">{t("weekly")}</option>
+              <option value="monthly">{t("monthly")}</option>
             </select>
           </label>
         </div>
@@ -1385,7 +1388,7 @@ const ReportsPage = () => {
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </div>

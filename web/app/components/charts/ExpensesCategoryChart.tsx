@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 type CategoryDatum = { name: string; value: number; color: string };
@@ -14,6 +17,7 @@ const ExpensesCategoryChart = ({
   className?: string;
   data: CategoryDatum[];
 }) => {
+  const t = useTranslations("charts");
   const categoryData = data.length > 0 ? data : fallbackCategoryData;
 
   return (
@@ -22,8 +26,8 @@ const ExpensesCategoryChart = ({
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-slate-900">By Category</h3>
-          <p className="text-sm text-slate-500">Expense distribution</p>
+          <h3 className="font-semibold text-slate-900">{t("byCategory")}</h3>
+          <p className="text-sm text-slate-500">{t("expenseDistribution")}</p>
         </div>
       </div>
 

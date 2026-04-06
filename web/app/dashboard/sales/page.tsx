@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import PageTitle from "@/app/components/ui/PageTitle";
 import Card from "@/app/components/ui/Card";
 import { DollarSign } from "lucide-react";
+import { useTranslations } from "next-intl";
 import GuidedTour from "@/app/components/ui/GuidedTour";
 import { useTour } from "@/app/hooks/useTour";
 import { salesTourSteps } from "@/app/config/tourSteps";
@@ -144,6 +145,8 @@ const toSalesRow = (sale: ApiSale): SalesRow => {
 };
 
 const SalesPage = () => {
+  const t = useTranslations("sales");
+  const tCommon = useTranslations("common");
   const { showTour, completeTour, skipTour } = useTour("sales");
   const [activeBusinessId, setActiveBusinessId] = useState("");
   const [timeRange, setTimeRange] = useState("all");
@@ -462,13 +465,13 @@ const SalesPage = () => {
   };
 
   const subtitle = activeBusinessId
-    ? "View and manage sales records"
-    : "Select a business to start tracking sales";
+    ? t("subtitle")
+    : t("subtitleNoBusinessSelected");
 
   return (
     <div className="flex flex-col space-y-4 p-4 sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <PageTitle title="Sales" subtitle={subtitle} />
+        <PageTitle title={t("title")} subtitle={subtitle} />
         <button
           type="button"
           onClick={openCreateModal}
@@ -476,7 +479,7 @@ const SalesPage = () => {
           className="w-full rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           data-tour="record-sale-btn"
         >
-          Record Sale
+          {t("recordSale")}
         </button>
       </div>
 
@@ -500,85 +503,85 @@ const SalesPage = () => {
 
       <div className="grid gap-4 sm:grid-cols-2" data-tour="sales-stats">
         <Card
-          title="Today's Sales"
-          value={isLoadingSummary ? "Loading..." : formatSalesMoney(dailyRevenue)}
+          title={t("todaysSales")}
+          value={isLoadingSummary ? tCommon("loading") : formatSalesMoney(dailyRevenue)}
           icon={DollarSign}
           iconWrapperClass="bg-indigo-50 text-indigo-600"
           trend=""
           trendDirection=""
-          description={`${dailyCount} transactions`}
+          description={`${dailyCount} ${t("transactions")}`}
         />
         <Card
-          title="Avg. Sale"
-          value={isLoadingSummary ? "Loading..." : formatSalesMoney(averageSale)}
+          title={t("avgSale")}
+          value={isLoadingSummary ? tCommon("loading") : formatSalesMoney(averageSale)}
           icon={DollarSign}
           iconWrapperClass="bg-indigo-50 text-indigo-600"
           trend=""
           trendDirection=""
-          description={`${rangeCount} sales in selected period`}
+          description={t("salesInSelectedPeriod", { count: rangeCount })}
         />
       </div>
 
       <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4" data-tour="sales-filters">
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Time range
+            {t("timeRange")}
           </label>
           <select
             value={timeRange}
             onChange={(event) => setTimeRange(event.target.value)}
             className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none focus:border-indigo-400"
           >
-            <option value="all">All time</option>
-            <option value="last_7">Last 7 days</option>
-            <option value="this_month">This month</option>
+            <option value="all">{t("allTime")}</option>
+            <option value="last_7">{t("last7Days")}</option>
+            <option value="this_month">{t("thisMonth")}</option>
           </select>
         </div>
 
         <div>
           <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Search
+            {tCommon("search")}
           </label>
           <input
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by product id, note, or status"
+            placeholder={t("searchPlaceholder")}
             className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none focus:border-indigo-400"
           />
         </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-        <h3 className="text-sm font-semibold text-slate-900">Sale Details</h3>
+        <h3 className="text-sm font-semibold text-slate-900">{t("saleDetails")}</h3>
         {isDetailLoading ? (
-          <p className="mt-2 text-slate-500">Loading sale details...</p>
+          <p className="mt-2 text-slate-500">{t("loadingSaleDetails")}</p>
         ) : details ? (
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <p className="break-all">
-              <span className="font-medium">ID:</span> {details.id}
+              <span className="font-medium">{t("id")}:</span> {details.id}
             </p>
             <p className="break-all">
-              <span className="font-medium">Product:</span> {details.product_id ?? "N/A"}
+              <span className="font-medium">{t("product")}:</span> {details.product_id ?? t("noLinkedProduct")}
             </p>
             <p>
-              <span className="font-medium">Unit:</span> {formatSalesMoney(details.unit_price)}
+              <span className="font-medium">{t("unit")}:</span> {formatSalesMoney(details.unit_price)}
             </p>
             <p>
-              <span className="font-medium">Total:</span> {formatSalesMoney(details.total)}
+              <span className="font-medium">{t("total")}:</span> {formatSalesMoney(details.total)}
             </p>
             <p>
-              <span className="font-medium">Quantity:</span> {details.quantity}
+              <span className="font-medium">{t("quantity")}:</span> {details.quantity}
             </p>
             <p>
-              <span className="font-medium">Status:</span> {details.is_voided ? "Voided" : "Active"}
+              <span className="font-medium">{tCommon("status")}:</span> {details.is_voided ? tCommon("voided") : tCommon("active")}
             </p>
             <p className="sm:col-span-2">
-              <span className="font-medium">Note:</span> {details.note || "-"}
+              <span className="font-medium">{t("note")}:</span> {details.note || "-"}
             </p>
           </div>
         ) : (
-          <p className="mt-2 text-slate-500">Select View on any sale row to inspect details.</p>
+          <p className="mt-2 text-slate-500">{t("selectViewToInspect")}</p>
         )}
       </div>
 
@@ -587,21 +590,21 @@ const SalesPage = () => {
           <Table>
             <TableHeader className="bg-slate-50 text-xs uppercase tracking-wide">
               <TableRow className="border-slate-200 hover:bg-transparent">
-                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">Date &amp; Time</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">Product ID</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">Qty</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">Unit Price</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">Total</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">Note</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">Status</TableHead>
-                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">Actions</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">{t("dateAndTime")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">{t("productId")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">{t("qty")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">{t("unitPrice")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">{t("total")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 whitespace-nowrap">{t("note")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">{tCommon("status")}</TableHead>
+                <TableHead className="px-3 py-3 sm:px-5 text-right whitespace-nowrap">{tCommon("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoadingList ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={8} className="px-3 py-10 sm:px-5 text-center text-slate-500">
-                    Loading sales...
+                    {t("loadingSales")}
                   </TableCell>
                 </TableRow>
               ) : filteredRows.length > 0 ? (
@@ -640,7 +643,7 @@ const SalesPage = () => {
                           onClick={() => handleView(row)}
                           className="rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50 sm:px-3"
                         >
-                          View
+                          {tCommon("view")}
                         </button>
                         <button
                           type="button"
@@ -648,7 +651,7 @@ const SalesPage = () => {
                           disabled={row.status === "Voided"}
                           className="rounded-full border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3"
                         >
-                          Edit
+                          {tCommon("edit")}
                         </button>
                         <button
                           type="button"
@@ -656,7 +659,7 @@ const SalesPage = () => {
                           disabled={row.status === "Voided"}
                           className="rounded-full border border-rose-200 px-2 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-3"
                         >
-                          Void
+                          {t("void")}
                         </button>
                       </div>
                     </TableCell>
@@ -665,7 +668,7 @@ const SalesPage = () => {
               ) : (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={8} className="px-3 py-10 sm:px-5 text-center text-slate-500">
-                    No sales found for the selected filters.
+                    {t("noSalesFound")}
                   </TableCell>
                 </TableRow>
               )}
@@ -675,7 +678,7 @@ const SalesPage = () => {
 
         <div className="flex flex-col gap-3 border-t border-slate-200 px-3 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <span className="text-center sm:text-left">
-            Showing {startIndex} to {endIndex} of {shownTotalCount} results
+            {t("showing")} {startIndex} {t("to")} {endIndex} {t("of")} {shownTotalCount} {t("results")}
           </span>
           <div className="flex gap-2 justify-center sm:justify-end">
             <button
@@ -684,7 +687,7 @@ const SalesPage = () => {
               disabled={currentPage === 1 || isLoadingList}
               className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
             >
-              Previous
+              {tCommon("previous")}
             </button>
             <button
               type="button"
@@ -692,7 +695,7 @@ const SalesPage = () => {
               disabled={currentPage === totalPages || filteredRows.length === 0 || isLoadingList}
               className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
             >
-              Next
+              {tCommon("next")}
             </button>
           </div>
         </div>
@@ -705,18 +708,18 @@ const SalesPage = () => {
             className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-4 shadow-xl sm:p-6 my-8"
           >
             <h3 className="text-base font-semibold text-slate-900 sm:text-lg">
-              {editingSaleId ? "Edit Sale Note" : "Record Sale"}
+              {editingSaleId ? t("editSaleNote") : t("recordSale")}
             </h3>
             <p className="mt-1 text-xs text-slate-500 sm:text-sm">
               {editingSaleId
-                ? "Only note updates are allowed for existing sales."
-                : "Record a new sale for the active business."}
+                ? t("onlyNoteUpdatesAllowed")
+                : t("recordNewSale")}
             </p>
 
             <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-700 sm:text-sm">
-                  Product
+                  {t("product")}
                 </label>
                 <select
                   value={formState.productId}
@@ -729,7 +732,7 @@ const SalesPage = () => {
                   disabled={Boolean(editingSaleId)}
                   className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-700 outline-none focus:border-indigo-400 disabled:bg-slate-100"
                 >
-                  <option value="">No linked product</option>
+                  <option value="">{t("noLinkedProduct")}</option>
                   {availableProducts.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.name} ({product.id})
@@ -741,7 +744,7 @@ const SalesPage = () => {
               <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-700 sm:text-sm">
-                    Unit Price
+                    {t("unitPrice")}
                   </label>
                   <input
                     type="number"
@@ -762,7 +765,7 @@ const SalesPage = () => {
 
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-700 sm:text-sm">
-                    Quantity
+                    {t("quantity")}
                   </label>
                   <input
                     type="number"
@@ -784,7 +787,7 @@ const SalesPage = () => {
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-700 sm:text-sm">
-                  Note
+                  {t("note")}
                 </label>
                 <textarea
                   value={formState.note}
@@ -807,7 +810,7 @@ const SalesPage = () => {
                 onClick={() => setIsCreateOpen(false)}
                 className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:w-auto"
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
               <button
                 type="submit"
@@ -815,10 +818,10 @@ const SalesPage = () => {
                 className="w-full rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 sm:w-auto"
               >
                 {isSubmitting
-                  ? "Saving..."
+                  ? tCommon("saving")
                   : editingSaleId
-                    ? "Save Note"
-                    : "Record Sale"}
+                    ? t("saveNote")
+                    : t("recordSale")}
               </button>
             </div>
           </form>

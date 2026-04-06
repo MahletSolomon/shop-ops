@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import Card from "@/app/components/ui/Card";
 import { DollarSign, PieChart, Calculator } from "lucide-react";
 
@@ -17,36 +20,38 @@ const ExpensesStats: React.FC<ExpensesStatsProps> = ({
   averageExpense,
   transactionCount,
 }) => {
+  const t = useTranslations("expenses");
+  
   return (
     <div className="grid gap-4 lg:grid-cols-3" data-tour="expense-stats">
       <Card
-        title="Total Expenses"
+        title={t("totalExpenses")}
         value={totalExpenses}
         icon={DollarSign}
         iconWrapperClass="bg-emerald-50 text-emerald-600"
         trend=""
         trendDirection=""
-        description={`${transactionCount} transactions`}
+        description={`${transactionCount} ${t("transactions")}`}
       />
 
       <Card
-        title="Top Category"
+        title={t("topCategory")}
         value={topCategory}
         icon={PieChart}
         iconWrapperClass="bg-blue-50 text-blue-600"
         trend=""
         trendDirection=""
-        description={`${topCategoryShare} of total`}
+        description={t("ofTotal", { share: topCategoryShare })}
       />
 
       <Card
-        title="Average Expense"
+        title={t("averageExpense")}
         value={averageExpense}
         icon={Calculator}
         iconWrapperClass="bg-purple-50 text-purple-600"
         trend=""
         trendDirection=""
-        description="Per transaction"
+        description={t("perTransaction")}
       />
     </div>
   );

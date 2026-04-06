@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import ExpensesHeader from "@/app/components/expenses/ExpensesHeader";
 import ExpensesFilters from "@/app/components/expenses/ExpensesFilters";
 import ExpensesStats from "@/app/components/expenses/ExpensesStats";
@@ -123,6 +124,8 @@ const toExpenseRow = (expense: ApiExpense): ExpenseRow => {
 };
 
 const Expenses = () => {
+  const t = useTranslations("expenses");
+  const tCommon = useTranslations("common");
   const { showTour, completeTour, skipTour } = useTour("expenses");
   const [activeBusinessId, setActiveBusinessId] = useState("");
   const [timeRange, setTimeRange] = useState("all");
@@ -381,7 +384,7 @@ const Expenses = () => {
   const handleVoid = async (row: ExpenseRow) => {
     if (
       !window.confirm(
-        "Void this expense? This will hide it from regular listings.",
+        t("voidExpenseConfirm")
       )
     ) {
       return;
@@ -392,13 +395,13 @@ const Expenses = () => {
 
     try {
       await voidExpense(String(row.id));
-      setSuccess("Expense voided successfully.");
+      setSuccess(t("expenseVoidedSuccessfully"));
       await Promise.all([reloadList(), reloadSummary()]);
     } catch (voidError) {
       setActionError(
         voidError instanceof Error
           ? voidError.message
-          : "Failed to void expense",
+          : t("failedToVoidExpense")
       );
     }
   };
@@ -407,13 +410,13 @@ const Expenses = () => {
     event.preventDefault();
 
     if (!activeBusinessId) {
-      setActionError("No active business selected.");
+      setActionError(t("noActiveBusinessSelected"));
       return;
     }
 
     const amount = Number.parseFloat(formState.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      setActionError("Amount must be greater than 0.");
+      setActionError(t("amountMustBeGreaterThanZero"));
       return;
     }
 
@@ -428,7 +431,7 @@ const Expenses = () => {
           amount,
           note: formState.note,
         });
-        setSuccess("Expense updated successfully.");
+        setSuccess(t("expenseUpdatedSuccessfully"));
       } else {
         await createExpense({
           business_id: activeBusinessId,
@@ -436,7 +439,7 @@ const Expenses = () => {
           amount,
           note: formState.note,
         });
-        setSuccess("Expense created successfully.");
+        setSuccess(t("expenseCreatedSuccessfully"));
       }
 
       setIsModalOpen(false);
@@ -445,7 +448,7 @@ const Expenses = () => {
       setActionError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to save expense",
+          : t("failedToSaveExpense")
       );
     } finally {
       setIsSubmitting(false);
@@ -487,24 +490,24 @@ const Expenses = () => {
 
   const filterCategoryOptions = useMemo(() => {
     return [
-      { value: "all", label: "All Categories" },
+      { value: "all", label: t("allCategories") },
       ...categoryOptions.map((value) => ({
         value,
         label: EXPENSE_CATEGORY_LABELS[value],
       })),
     ];
-  }, [categoryOptions]);
+  }, [categoryOptions, t]);
 
   const shownTotalCount = search.trim() ? filteredRows.length : totalCount;
 
   const subtitle = activeBusinessId
-    ? "Track and review business expenses"
-    : "Select a business to start tracking expenses";
+    ? t("subtitle")
+    : t("subtitleNoBusinessSelected");
 
   return (
     <div className="flex flex-col space-y-4">
       <ExpensesHeader
-        title="Expenses"
+        title={t("title")}
         subtitle={subtitle}
         onAdd={openCreateModal}
         onExport={exportCurrentRows}
@@ -569,18 +572,18 @@ const Expenses = () => {
             className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
           >
             <h3 className="text-lg font-semibold text-slate-900">
-              {editingExpenseId ? "Edit Expense" : "Add Expense"}
+              {editingExpenseId ? t("editExpense") : t("addExpense")}
             </h3>
             <p className="mt-1 text-sm text-slate-500">
               {editingExpenseId
-                ? "Update expense details and save changes."
-                : "Record a new expense for the active business."}
+                ? t("updateExpenseDetails")
+                : t("recordNewExpense")}
             </p>
 
             <div className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Category
+                  {t("category")}
                 </label>
                 <select
                   value={formState.category}
@@ -602,7 +605,7 @@ const Expenses = () => {
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Amount
+                  {t("amount")}
                 </label>
                 <input
                   type="number"
@@ -622,7 +625,7 @@ const Expenses = () => {
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Description
+                  {t("description")}
                 </label>
                 <textarea
                   value={formState.note}
@@ -634,7 +637,7 @@ const Expenses = () => {
                   }
                   rows={3}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none focus:border-emerald-400"
-                  placeholder="Expense note"
+                  placeholder={t("expenseNote")}
                 />
               </div>
             </div>
@@ -645,7 +648,7 @@ const Expenses = () => {
                 onClick={() => setIsModalOpen(false)}
                 className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                Cancel
+                {tCommon("cancel")}
               </button>
               <button
                 type="submit"
@@ -653,10 +656,10 @@ const Expenses = () => {
                 className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-600 disabled:opacity-50"
               >
                 {isSubmitting
-                  ? "Saving..."
+                  ? tCommon("saving")
                   : editingExpenseId
-                    ? "Save Changes"
-                    : "Create Expense"}
+                    ? t("saveChanges")
+                    : t("createExpense")}
               </button>
             </div>
           </form>

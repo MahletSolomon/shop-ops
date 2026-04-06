@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import StockAlertItem from './StockAlertItem';
 
 export interface StockItem {
@@ -18,15 +21,16 @@ interface StockAlertListProps {
 const StockAlertList: React.FC<StockAlertListProps> = ({
     items,
     isLoading = false,
-    emptyMessage = "No low stock items.",
+    emptyMessage,
 }) => {
+    const t = useTranslations("dashboard");
 
     if (isLoading) {
-        return <p className="text-sm text-slate-500">Loading low stock items...</p>;
+        return <p className="text-sm text-slate-500">{t("loadingLowStockItems")}</p>;
     }
 
     if (items.length === 0) {
-        return <p className="text-sm text-slate-500">{emptyMessage}</p>;
+        return <p className="text-sm text-slate-500">{emptyMessage || t("noLowStockItems")}</p>;
     }
 
     return (

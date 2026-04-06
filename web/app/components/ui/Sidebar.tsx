@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
     LayoutDashboard,
     ShoppingCart,
@@ -20,6 +21,8 @@ import {
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const t = useTranslations("navigation");
+    const tCommon = useTranslations("common");
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
@@ -27,37 +30,37 @@ export default function Sidebar() {
     // navigation
     const navItems = [
         {
-            label: "Dashboard",
+            labelKey: "dashboard",
             href: "/dashboard",
             icon: <LayoutDashboard size={20} />,
             tourId: "sidebar-dashboard",
         },
         {
-            label: "Sales",
+            labelKey: "sales",
             href: "/dashboard/sales",
             icon: <ShoppingCart size={20} />,
             tourId: "sidebar-sales",
         },
         {
-            label: "Expenses",
+            labelKey: "expenses",
             href: "/dashboard/expenses",
             icon: <Receipt size={20} />,
             tourId: "sidebar-expenses",
         },
         {
-            label: "Inventory",
+            labelKey: "inventory",
             href: "/dashboard/inventory",
             icon: <Package size={20} />,
             tourId: "sidebar-inventory",
         },
         {
-            label: "Reports",
+            labelKey: "reports",
             href: "/dashboard/reports",
             icon: <BarChart3 size={20} />,
             tourId: "sidebar-reports",
         },
         {
-            label: "Settings",
+            labelKey: "settings",
             href: "/dashboard/settings",
             icon: <Settings size={20} />,
             tourId: "sidebar-settings",
@@ -166,7 +169,7 @@ export default function Sidebar() {
 
                                 {(!isCollapsed || isMobileOpen) && (
                                     <span className="text-sm whitespace-nowrap transition-opacity duration-300">
-                                        {item.label}
+                                        {t(item.labelKey)}
                                     </span>
                                 )}
                             </Link>
@@ -184,7 +187,7 @@ export default function Sidebar() {
                     >
                         <LogOut size={20} />
                         {(!isCollapsed || isMobileOpen) && (
-                            <span className="text-sm font-medium">Logout</span>
+                            <span className="text-sm font-medium">{t("logout")}</span>
                         )}
                     </button>
 

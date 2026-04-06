@@ -1,4 +1,7 @@
+'use client';
+
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Search, CalendarDays, ListFilter } from "lucide-react";
 
 type ExpensesFiltersProps = {
@@ -20,6 +23,8 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
   onCategoryChange,
   onSearchChange,
 }) => {
+  const t = useTranslations("expenses");
+  
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="grid gap-3 md:grid-cols-[180px_200px_1fr]">
@@ -30,9 +35,9 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
             onChange={(event) => onTimeRangeChange(event.target.value)}
             className="h-10 w-full appearance-none rounded-full border border-slate-200 bg-white pl-10 pr-8 text-sm text-slate-700 shadow-sm focus:border-emerald-400 focus:outline-none"
           >
-            <option value="all">All Time</option>
-            <option value="last_7">Last 7 Days</option>
-            <option value="this_month">This Month</option>
+            <option value="all">{t("allTime")}</option>
+            <option value="last_7">{t("last7Days")}</option>
+            <option value="this_month">{t("thisMonth")}</option>
           </select>
         </div>
 
@@ -59,7 +64,7 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
             type="text"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search descriptions..."
+            placeholder={t("searchDescriptions")}
             className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
           />
         </div>

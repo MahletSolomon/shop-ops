@@ -7,6 +7,7 @@ import PageTitle from "../components/ui/PageTitle";
 import React, { useEffect, useMemo, useState } from "react";
 import StockAlertList from "../components/ui/StockAlertList";
 import { DollarSign, TrendingUp, Package, TriangleAlert } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
     fetchSales,
     fetchSalesStats,
@@ -48,6 +49,9 @@ const readActiveBusinessId = () => {
 };
 
 export default function DashboardPage() {
+        const t = useTranslations("dashboard");
+        const tCommon = useTranslations("common");
+        const tStockAlerts = useTranslations("stockAlerts");
         const [activeBusinessId, setActiveBusinessId] = useState("");
         const [isLoading, setIsLoading] = useState(false);
         const [todaySales, setTodaySales] = useState(0);
@@ -128,8 +132,8 @@ export default function DashboardPage() {
                         const mapped: StockItem[] = products.map((product) => ({
                             name: product.name,
                             sku: `ID: ${product.id}`,
-                            quantity: `${product.stock_quantity} units`,
-                            status: product.stock_quantity <= 0 ? "Out of Stock" : "Low Stock",
+                            quantity: `${product.stock_quantity} ${tCommon("units")}`,
+                            status: product.stock_quantity <= 0 ? tStockAlerts("outOfStock") : tStockAlerts("lowStock"),
                             variant: product.stock_quantity <= 0 ? "critical" : "warning",
                         }));
                         setLowStockItems(mapped);
@@ -222,50 +226,50 @@ export default function DashboardPage() {
         <div className="flex flex-col space-y-4">
             {/* Dashboard Header */}
             <PageTitle
-                title="Dashboard"
-                subtitle="Overview of your business operations"
+                title={t("title")}
+                subtitle={t("subtitle")}
             />
 
             {/* Dashboard KPI Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div data-tour="stats-card">
                     <Card
-                        title="Today's Sales"
-                        value={isLoading ? "Loading..." : formatSalesMoney(todaySales)}
+                        title={t("todaysSales")}
+                        value={isLoading ? tCommon("loading") : formatSalesMoney(todaySales)}
                         icon={DollarSign}
                         iconWrapperClass="bg-indigo-50 text-indigo-600"
                         trend=""
                         trendDirection="up"
-                        description={`${todaySalesCount} transactions today`}
+                        description={tCommon("transactionsToday", { count: todaySalesCount })}
                     />
                 </div>
 
                 <Card
-                    title="Today's Expenses"
-                    value={isLoading ? "Loading..." : formatMoney(todayExpenses)}
+                    title={t("todaysExpenses")}
+                    value={isLoading ? tCommon("loading") : formatMoney(todayExpenses)}
                     icon={TrendingUp}
                     iconWrapperClass="bg-red-50 text-red-600"
                     trend=""
                     trendDirection="down"
-                    description="Based on recorded expenses"
+                    description={t("basedOnRecorded")}
                 />
 
                 <Card
-                    title="Monthly Sales"
-                    value={isLoading ? "Loading..." : formatSalesMoney(monthlySales)}
+                    title={t("monthlySales")}
+                    value={isLoading ? tCommon("loading") : formatSalesMoney(monthlySales)}
                     icon={DollarSign}
                     iconWrapperClass="bg-indigo-50 text-indigo-600"
                     trend=""
                     trendDirection="up"
-                    description="Current month cumulative"
+                    description={t("currentMonthCumulative")}
                 />
 
                 <Card
-                    title="Pending Syncs"
+                    title={t("pendingSyncs")}
                     value={String(pendingSyncs)}
                     icon={Package}
                     iconWrapperClass="bg-orange-50 text-orange-600"
-                    description="Voided sales today"
+                    description={t("voidedSalesToday")}
                     trend=""
                 />
             </div>
@@ -279,15 +283,15 @@ export default function DashboardPage() {
                     <div className="p-6 flex flex-col space-y-1.5">
                         <h3 className="font-semibold leading-none tracking-tight flex items-center gap-2">
                             <TriangleAlert className="h-4 w-4 text-amber-500" />
-                            Low Stock Alerts
+                            {t("lowStockAlerts")}
                         </h3>
-                        <p className="text-sm text-slate-500">{lowStockItems.length} items require attention</p>
+                        <p className="text-sm text-slate-500">{tCommon("itemsRequireAttention", { count: lowStockItems.length })}</p>
                     </div>
                     <div className="p-6 pt-0">
                         <StockAlertList
                             items={lowStockItems}
                             isLoading={isLoadingLowStock}
-                            emptyMessage="No low stock alerts right now."
+                            emptyMessage={t("noLowStockAlerts")}
                         />
                     </div>
                 </div>
