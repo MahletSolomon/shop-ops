@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown, Plus, Building2, Store, Check } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Business {
   id: string;
@@ -10,8 +11,6 @@ interface Business {
   language: string;
   timezone: string;
 }
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
 
 export default function BusinessSwitcher() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -40,7 +39,7 @@ export default function BusinessSwitcher() {
     const token = getToken();
     if (!token) return;
     try {
-      const res = await fetch(`${BASE_URL}/businesses`, {
+      const res = await fetch(`${API_BASE_URL}/businesses`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -99,7 +98,7 @@ export default function BusinessSwitcher() {
      }
 
      try {
-       const res = await fetch(`${BASE_URL}/businesses`, {
+       const res = await fetch(`${API_BASE_URL}/businesses`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -114,7 +114,79 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="overflow-x-auto">
+      <div className="sm:hidden divide-y divide-slate-100">
+        {isLoading ? (
+          <div className="px-4 py-10 text-center text-slate-500">
+            {t("loadingExpenses")}
+          </div>
+        ) : pageRows.length > 0 ? (
+          pageRows.map((row) => (
+            <div key={row.id} className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium text-slate-800">
+                    {formatDate(row.date)}
+                  </div>
+                  <div className="text-xs text-slate-500">{row.time}</div>
+                </div>
+                <span
+                  className={`inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+                    categoryStyles[row.category] ?? "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {row.category}
+                </span>
+              </div>
+
+              <div className="mt-3 grid gap-2 text-sm text-slate-700">
+                <div className="flex items-start justify-between gap-4">
+                  <span className="text-slate-500">{t("description")}</span>
+                  <span className="max-w-[60%] text-right">{row.description}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-slate-500">{t("amount")}</span>
+                  <span className="font-semibold text-slate-900">{row.amount}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-slate-500">{tCommon("status")}</span>
+                  <span
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                      statusStyles[row.status]
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => onEdit?.(row)}
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!onEdit}
+                >
+                  {tCommon("edit")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onVoid?.(row)}
+                  className="inline-flex flex-1 items-center justify-center rounded-full border border-rose-200 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!onVoid}
+                >
+                  {t("void")}
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="px-4 py-10 text-center text-slate-500">
+            {tCommon("noResults")}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr className="border-b border-slate-200">
@@ -209,11 +281,11 @@ const ExpensesTable: React.FC<ExpensesTableProps> = ({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-slate-200 px-5 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-        <span>
+      <div className="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <span className="text-center sm:text-left">
           {t("showing")} {startIndex} {t("to")} {endIndex} {t("of")} {totalCount} {t("results")}
         </span>
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2 sm:justify-end">
           <button
             type="button"
             onClick={handlePrevious}

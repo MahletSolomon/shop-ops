@@ -33,7 +33,7 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
           <select
             value={timeRange}
             onChange={(event) => onTimeRangeChange(event.target.value)}
-            className="h-10 w-full appearance-none rounded-full border border-slate-200 bg-white pl-10 pr-8 text-sm text-slate-700 shadow-sm focus:border-emerald-400 focus:outline-none"
+            className="h-11 w-full appearance-none rounded-full border border-slate-200 bg-white pl-10 pr-8 text-sm text-slate-700 shadow-sm focus:border-emerald-400 focus:outline-none"
           >
             <option value="all">{t("allTime")}</option>
             <option value="last_7">{t("last7Days")}</option>
@@ -46,7 +46,7 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
           <select
             value={category}
             onChange={(event) => onCategoryChange(event.target.value)}
-            className="h-10 w-full appearance-none rounded-full border border-slate-200 bg-white pl-10 pr-8 text-sm text-slate-700 shadow-sm focus:border-emerald-400 focus:outline-none"
+            className="h-11 w-full appearance-none rounded-full border border-slate-200 bg-white pl-10 pr-8 text-sm text-slate-700 shadow-sm focus:border-emerald-400 focus:outline-none"
           >
             {categoryOptions.map((option) => {
               return (
@@ -65,7 +65,7 @@ const ExpensesFilters: React.FC<ExpensesFiltersProps> = ({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={t("searchDescriptions")}
-            className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
+            className="h-11 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-400 focus:outline-none"
           />
         </div>
       </div>

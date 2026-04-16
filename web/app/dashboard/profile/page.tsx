@@ -6,6 +6,7 @@ import { Building2, KeyRound, ShieldCheck, HelpCircle } from "lucide-react";
 import PageTitle from "@/app/components/ui/PageTitle";
 import Card from "@/app/components/ui/Card";
 import { useTour } from "@/app/hooks/useTour";
+import { API_BASE_URL } from "@/lib/api";
 
 type ProfileDetails = {
   fullName: string;
@@ -38,15 +39,6 @@ type ApiBusiness = {
   created_at: string;
   updated_at: string;
 };
-
-type ApiError = {
-  error?: string;
-  message?: string;
-  details?: string;
-};
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api/v1";
 
 const ACCESS_TOKEN_KEYS = ["token", "access_token", "authToken"];
 
@@ -83,6 +75,12 @@ const getAccessToken = () => {
     ?.split("=")[1];
 
   return cookieToken ? decodeURIComponent(cookieToken) : null;
+};
+
+type ApiError = {
+  error?: string;
+  message?: string;
+  details?: string;
 };
 
 const parseApiError = async (response: Response) => {
